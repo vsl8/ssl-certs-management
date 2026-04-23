@@ -82,12 +82,13 @@ $(document).ready(function() {
     // Browse link
     $('#browseLink').on('click', function(e) {
         e.preventDefault();
+        e.stopPropagation();
         certFile.click();
     });
 
-    // Click on upload zone
+    // Click on upload zone (but not on the browse link)
     uploadZone.on('click', function(e) {
-        if (e.target === this || $(e.target).closest('.upload-content').length) {
+        if (!$(e.target).is('a') && (e.target === this || $(e.target).closest('.upload-content').length)) {
             certFile.click();
         }
     });
