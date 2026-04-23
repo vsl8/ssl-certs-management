@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Add Certificate - SSL Cert Manager{% endblock %}
+{% block page_title %}Add Certificate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card admin-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add New Certificate</h6>
+            </div>
+            <div class="card-body">
+                <form id="addCertForm" enctype="multipart/form-data">
+                    <!-- File Upload -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Certificate File <span class="text-danger">*</span></label>
+                        <div class="upload-zone" id="uploadZone">
+                            <input type="file" name="cert_file" id="certFile" class="d-none"
+                                   accept=".pem,.crt,.cer,.der,.p12,.pfx,.key,.pki,.pkcs,.cert,.ca-bundle,.p7b,.p7c">
+                            <div class="upload-content text-center py-4">
+                                <i class="bi bi-cloud-arrow-up fs-1 text-primary"></i>
+                                <p class="mt-2 mb-1">Drag & drop your certificate file here or <a href="#" id="browseLink">browse</a></p>
+                                <small class="text-muted">Supported: .pem, .crt, .cer, .der, .p12, .pfx, .key, .pki, .pkcs, .p7b, .p7c</small>
+                            </div>
+                            <div class="selected-file d-none" id="selectedFile">
+                                <i class="bi bi-file-earmark-lock2 text-primary me-2"></i>
+                                <span id="selectedFileName"></span>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="clearFile">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password for encrypted certs (PFX/P12) -->
+                    <div class="mb-3" id="passwordGroup" style="display: none;">
+                        <label class="form-label fw-semibold">Certificate Password</label>
+                        <input type="password" name="password" class="form-control"
+                               placeholder="Password for PFX/P12 encrypted files">
+                        <small class="text-muted">Required for PFX/P12 files that are password-protected</small>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <textarea name="notes" class="form-control" rows="3"
+                                  placeholder="Any notes about this certificate..."></textarea>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Tags</label>
+                        <input type="text" name="tags" class="form-control"
+                               placeholder="e.g., production, web-server, internal (comma-separated)">
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-upload me-1"></i> Upload & Parse Certificate
+                        </button>
+                        <a href="{{ url_for('certificates.list_certs') }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const uploadZone = $('#uploadZone');
+    const certFile = $('#certFile');
+    const selectedFile = $('#selectedFile');
+    const selectedFileName = $('#selectedFileName');
+    const uploadContent = $('.upload-content');
+    const passwordGroup = $('#passwordGroup');
+
+    // Browse link
+    $('#browseLink').on('click', function(e) {
+        e.preventDefault();
+        certFile.click();
+    });
+
+    // Click on upload zone
+    uploadZone.on('click', function(e) {
+        if (e.target === this || $(e.target).closest('.upload-content').length) {
+            certFile.click();
+        }
+    });
+
+    // Drag & drop
+    uploadZone.on('dragover', function(e) {
+        e.preventDefault();
+        $(this).addClass('drag-over');
+    }).on('dragleave drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('drag-over');
+    }).on('drop', function(e) {
+        const files = e.originalEvent.dataTransfer.files;
+        if (files.length) {
+            certFile[0].files = files;
+            showSelectedFile(files[0]);
+        }
+    });
+
+    // File selected
+    certFile.on('change', function() {
+        if (this.files.length) {
+            showSelectedFile(this.files[0]);
+        }
+    });
+
+    function showSelectedFile(file) {
+        selectedFileName.text(file.name + ' (' + formatBytes(file.size) + ')');
+        uploadContent.addClass('d-none');
+        selectedFile.removeClass('d-none');
+
+        // Show password field for PFX/P12
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (['pfx', 'p12'].includes(ext)) {
+            passwordGroup.show();
+        } else {
+            passwordGroup.hide();
+        }
+    }
+
+    $('#clearFile').on('click', function(e) {
+        e.stopPropagation();
+        certFile.val('');
+        uploadContent.removeClass('d-none');
+        selectedFile.addClass('d-none');
+        passwordGroup.hide();
+    });
+
+    // Form submit
+    $('#addCertForm').on('submit', function(e) {
+        e.preventDefault();
+
+        if (!certFile[0].files.length) {
+            Swal.fire('Error', 'Please select a certificate file.', 'warning');
+            return;
+        }
+
+        const btn = $('#submitBtn');
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Parsing...');
+
+        const formData = new FormData(this);
+
+        fetch('{{ url_for("certificates.add_cert") }}', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.prop('disabled', false).html('<i class="bi bi-upload me-1"></i> Upload & Parse Certificate');
+
+            if (data.success) {
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonText: 'View Certificate',
+                    showCancelButton: true,
+                    cancelButtonText: 'Add Another',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = `/certificates/view/${data.cert_id}`;
+                    } else {
+                        // Reset form
+                        $('#addCertForm')[0].reset();
+                        uploadContent.removeClass('d-none');
+                        selectedFile.addClass('d-none');
+                        passwordGroup.hide();
+                    }
+                });
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        })
+        .catch(() => {
+            btn.prop('disabled', false).html('<i class="bi bi-upload me-1"></i> Upload & Parse Certificate');
+            Swal.fire('Error', 'Failed to upload certificate.', 'error');
+        });
+    });
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
+{% endblock %}

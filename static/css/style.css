@@ -1,0 +1,406 @@
+/* ========================================
+   SSL Cert Manager - Admin Theme
+   ======================================== */
+
+:root {
+    --sidebar-width: 260px;
+    --sidebar-bg: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-active: #3b82f6;
+    --sidebar-hover: #334155;
+    --topbar-height: 60px;
+    --body-bg: #f1f5f9;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--body-bg);
+    color: #334155;
+    overflow-x: hidden;
+}
+
+/* ─── Sidebar ─── */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--sidebar-width);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    z-index: 1040;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.sidebar-brand i {
+    font-size: 1.5rem;
+    color: var(--sidebar-active);
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px 0;
+}
+
+.sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    color: var(--sidebar-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+}
+
+.sidebar-nav .nav-link:hover {
+    background: var(--sidebar-hover);
+    color: #e2e8f0;
+}
+
+.sidebar-nav .nav-link.active {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--sidebar-active);
+    border-left-color: var(--sidebar-active);
+}
+
+.sidebar-nav .nav-link i {
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-section-title {
+    padding: 20px 20px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #475569;
+    text-transform: uppercase;
+    list-style: none;
+}
+
+.sidebar-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    text-align: center;
+}
+
+.sidebar-toggle {
+    color: var(--sidebar-text);
+    text-decoration: none;
+}
+
+/* ─── Main Content ─── */
+.main-content {
+    margin-left: var(--sidebar-width);
+    min-height: 100vh;
+    transition: margin-left 0.3s ease;
+}
+
+/* ─── Topbar ─── */
+.topbar {
+    height: var(--topbar-height);
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.page-title {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+/* ─── Content Wrapper ─── */
+.content-wrapper {
+    padding: 24px;
+}
+
+/* ─── Cards ─── */
+.admin-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+    background: #fff;
+}
+
+.admin-card .card-header {
+    background: transparent;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 16px 20px;
+    font-weight: 600;
+}
+
+.admin-card .card-body {
+    padding: 20px;
+}
+
+/* ─── Stat Cards ─── */
+.stat-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-card-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.stat-total {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+.stat-total .stat-icon { background: rgba(255,255,255,0.2); }
+
+.stat-healthy {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: #fff;
+}
+.stat-healthy .stat-icon { background: rgba(255,255,255,0.2); }
+
+.stat-warning {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    color: #fff;
+}
+.stat-warning .stat-icon { background: rgba(255,255,255,0.2); }
+
+.stat-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    color: #fff;
+}
+.stat-danger .stat-icon { background: rgba(255,255,255,0.2); }
+
+/* Mini Stat Cards */
+.mini-stat-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: var(--card-shadow);
+    height: 100%;
+}
+
+.mini-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.mini-stat-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* ─── Upload Zone ─── */
+.upload-zone {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: #f8fafc;
+}
+
+.upload-zone:hover,
+.upload-zone.drag-over {
+    border-color: var(--sidebar-active);
+    background: rgba(59, 130, 246, 0.04);
+}
+
+.upload-zone .selected-file {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    font-weight: 500;
+}
+
+/* ─── Tables ─── */
+.table th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
+    border-bottom-width: 1px;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+/* ─── DataTables Overrides ─── */
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    padding: 6px 12px;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+/* ─── Badges ─── */
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 991.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.show {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .content-wrapper {
+        padding: 16px;
+    }
+}
+
+/* Sidebar overlay for mobile */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1035;
+    display: none;
+}
+
+.sidebar-overlay.show {
+    display: block;
+}
+
+/* ─── SweetAlert Customizations ─── */
+.swal2-popup {
+    border-radius: 12px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+/* ─── Scrollbar ─── */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+}
+
+/* ─── Animations ─── */
+.stat-card, .admin-card, .mini-stat-card {
+    animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─── Format Buttons ─── */
+.format-btn {
+    min-width: 100px;
+    font-weight: 600;
+}
+
+.format-btn.btn-primary {
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* ─── Channel Cards ─── */
+.card.h-100 {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    transition: box-shadow 0.2s;
+}
+
+.card.h-100:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}

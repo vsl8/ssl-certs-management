@@ -1,0 +1,23 @@
+[project]
+name = "ssl-cert-manager"
+version = "1.0.0"
+description = "A Flask-based web application for managing SSL/TLS certificates"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0",
+    "flask-sqlalchemy>=3.1",
+    "flask-wtf>=1.2",
+    "wtforms>=3.1",
+    "cryptography>=43.0",
+    "pyopenssl>=24.0",
+    "python-dateutil>=2.9",
+    "apscheduler>=3.10",
+    "requests>=2.31",
+    "pymysql>=1.1",
+    "gunicorn>=25.3.0",
+    "flask-login>=0.6.3",
+]
+
+[dependency-groups]
+dev = []

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Certificate - SSL Cert Manager{% endblock %}
+{% block page_title %}Edit Certificate{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card admin-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-pencil me-2"></i>Edit Certificate: {{ cert.common_name or cert.filename }}</h6>
+            </div>
+            <div class="card-body">
+                <form id="editCertForm">
+                    <!-- Common Name -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Common Name / Display Name</label>
+                        <input type="text" name="common_name" class="form-control"
+                               value="{{ cert.common_name or '' }}" placeholder="Certificate display name">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <textarea name="notes" class="form-control" rows="4"
+                                  placeholder="Any notes about this certificate...">{{ cert.notes or '' }}</textarea>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Tags</label>
+                        <input type="text" name="tags" class="form-control"
+                               value="{{ cert.tags or '' }}"
+                               placeholder="e.g., production, web-server, internal (comma-separated)">
+                    </div>
+
+                    <!-- Read-only info -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Certificate Info (Read-only)</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted">File:</small> {{ cert.filename }}<br>
+                                    <small class="text-muted">Type:</small> .{{ cert.file_type }}<br>
+                                    <small class="text-muted">Issuer:</small> {{ cert.issuer_organization or cert.issuer_common_name or 'N/A' }}<br>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">Valid From:</small> {{ cert.valid_from.strftime('%Y-%m-%d') if cert.valid_from else 'N/A' }}<br>
+                                    <small class="text-muted">Expires:</small> {{ cert.valid_until.strftime('%Y-%m-%d') if cert.valid_until else 'N/A' }}<br>
+                                    <small class="text-muted">Days Left:</small> {{ cert.days_until_expiry if cert.days_until_expiry is not none else 'N/A' }}<br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-check-lg me-1"></i> Save Changes
+                        </button>
+                        <a href="{{ url_for('certificates.view_cert', cert_id=cert.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$('#editCertForm').on('submit', function(e) {
+    e.preventDefault();
+
+    const btn = $('#submitBtn');
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+    const formData = new FormData(this);
+
+    fetch('{{ url_for("certificates.edit_cert", cert_id=cert.id) }}', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Save Changes');
+        if (data.success) {
+            Swal.fire({
+                title: 'Saved!',
+                text: data.message,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            setTimeout(() => window.location.href = '{{ url_for("certificates.view_cert", cert_id=cert.id) }}', 2000);
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(() => {
+        btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Save Changes');
+        Swal.fire('Error', 'Failed to save changes.', 'error');
+    });
+});
+</script>
+{% endblock %}

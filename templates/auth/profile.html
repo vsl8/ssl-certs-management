@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - SSL Cert Manager{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- User Info Card -->
+    <div class="col-xl-4">
+        <div class="card admin-card">
+            <div class="card-body text-center py-4">
+                <div class="avatar-circle mx-auto mb-3">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <h4 class="mb-1">{{ current_user.username }}</h4>
+                <p class="text-muted mb-3">{{ current_user.email or 'No email set' }}</p>
+
+                <div class="d-flex justify-content-center gap-3 text-muted small">
+                    <div>
+                        <i class="bi bi-calendar-check me-1"></i>
+                        Joined: {{ current_user.created_at.strftime('%Y-%m-%d') }}
+                    </div>
+                </div>
+                {% if current_user.last_login %}
+                <div class="text-muted small mt-2">
+                    <i class="bi bi-clock-history me-1"></i>
+                    Last login: {{ current_user.last_login.strftime('%Y-%m-%d %H:%M') }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Cards -->
+    <div class="col-xl-8">
+        <!-- Change Username -->
+        <div class="card admin-card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-person me-2"></i>Change Username</h6>
+            </div>
+            <div class="card-body">
+                <form id="usernameForm">
+                    <input type="hidden" name="action" value="change_username">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">New Username</label>
+                            <input type="text" name="new_username" class="form-control"
+                                   value="{{ current_user.username }}" required minlength="3">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="current_password" class="form-control"
+                                   placeholder="Enter current password to confirm" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">
+                        <i class="bi bi-check-lg me-1"></i> Update Username
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Email -->
+        <div class="card admin-card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-envelope me-2"></i>Change Email</h6>
+            </div>
+            <div class="card-body">
+                <form id="emailForm">
+                    <input type="hidden" name="action" value="change_email">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="new_email" class="form-control"
+                                   value="{{ current_user.email or '' }}" placeholder="your-email@example.com">
+                            <small class="text-muted">Optional. Used for account recovery.</small>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-check-lg me-1"></i> Update Email
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card admin-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-key me-2"></i>Change Password</h6>
+            </div>
+            <div class="card-body">
+                <form id="passwordForm">
+                    <input type="hidden" name="action" value="change_password">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="current_password" class="form-control"
+                                   placeholder="Current password" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="new_password" id="newPassword" class="form-control"
+                                   placeholder="New password" required minlength="8">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" name="confirm_password" id="confirmPassword" class="form-control"
+                                   placeholder="Confirm new password" required>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Password must be at least 8 characters long.</small>
+                    </div>
+                    <button type="submit" class="btn btn-warning mt-3">
+                        <i class="bi bi-shield-lock me-1"></i> Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #4361ee 0%, #3730a3 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function submitProfileForm(form, formId) {
+    const formData = new FormData(form);
+
+    fetch('{{ url_for("auth.profile") }}', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                if (formId === 'usernameForm' || formId === 'passwordForm') {
+                    location.reload();
+                }
+            });
+            // Clear password fields
+            form.querySelectorAll('input[type="password"]').forEach(input => input.value = '');
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(() => {
+        Swal.fire('Error', 'Failed to update profile.', 'error');
+    });
+}
+
+$('#usernameForm').on('submit', function(e) {
+    e.preventDefault();
+    submitProfileForm(this, 'usernameForm');
+});
+
+$('#emailForm').on('submit', function(e) {
+    e.preventDefault();
+    submitProfileForm(this, 'emailForm');
+});
+
+$('#passwordForm').on('submit', function(e) {
+    e.preventDefault();
+
+    const newPass = $('#newPassword').val();
+    const confirmPass = $('#confirmPassword').val();
+
+    if (newPass !== confirmPass) {
+        Swal.fire('Error', 'New passwords do not match.', 'error');
+        return;
+    }
+
+    if (newPass.length < 8) {
+        Swal.fire('Error', 'Password must be at least 8 characters.', 'error');
+        return;
+    }
+
+    submitProfileForm(this, 'passwordForm');
+});
+</script>
+{% endblock %}

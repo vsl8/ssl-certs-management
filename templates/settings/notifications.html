@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+
+{% block title %}Notification Channels - SSL Cert Manager{% endblock %}
+{% block page_title %}Notification Channels{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Channels List -->
+    <div class="col-12">
+        <div class="card admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-megaphone me-2"></i>Notification Channels</h6>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#channelModal" onclick="resetChannelForm()">
+                    <i class="bi bi-plus-lg"></i> Add Channel
+                </button>
+            </div>
+            <div class="card-body">
+                {% if channels %}
+                <div class="row g-3">
+                    {% for channel in channels %}
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card h-100 {% if not channel.is_enabled %}opacity-50{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-0">
+                                            {% if channel.channel_type == 'email' %}
+                                            <i class="bi bi-envelope-fill text-primary me-1"></i>
+                                            {% elif channel.channel_type == 'slack' %}
+                                            <i class="bi bi-slack text-success me-1"></i>
+                                            {% elif channel.channel_type == 'teams' %}
+                                            <i class="bi bi-microsoft-teams text-info me-1"></i>
+                                            {% else %}
+                                            <i class="bi bi-globe text-secondary me-1"></i>
+                                            {% endif %}
+                                            {{ channel.name }}
+                                        </h6>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        {% if channel.is_default %}
+                                        <span class="badge bg-primary">Default</span>
+                                        {% endif %}
+                                        {% if channel.is_enabled %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Disabled</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="small text-muted mb-3">
+                                    {% if channel.channel_type == 'email' %}
+                                    <i class="bi bi-server me-1"></i> {{ channel.smtp_host }}:{{ channel.smtp_port }}<br>
+                                    <i class="bi bi-envelope me-1"></i> From: {{ channel.smtp_from_email }}<br>
+                                    <i class="bi bi-people me-1"></i> To: {{ channel.smtp_to_emails[:50] }}{% if channel.smtp_to_emails|length > 50 %}...{% endif %}
+                                    {% elif channel.channel_type == 'slack' %}
+                                    <i class="bi bi-hash me-1"></i> Channel: {{ channel.slack_channel or 'Default' }}<br>
+                                    <i class="bi bi-link me-1"></i> Webhook configured
+                                    {% elif channel.channel_type == 'teams' %}
+                                    <i class="bi bi-link me-1"></i> Webhook configured
+                                    {% else %}
+                                    <i class="bi bi-link me-1"></i> {{ channel.webhook_url[:50] }}{% if channel.webhook_url and channel.webhook_url|length > 50 %}...{% endif %}<br>
+                                    <i class="bi bi-arrow-right me-1"></i> Method: {{ channel.webhook_method or 'POST' }}
+                                    {% endif %}
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-success btn-test-channel" data-id="{{ channel.id }}">
+                                        <i class="bi bi-send me-1"></i> Test
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary btn-edit-channel"
+                                            data-id="{{ channel.id }}"
+                                            data-name="{{ channel.name }}"
+                                            data-type="{{ channel.channel_type }}"
+                                            data-enabled="{{ channel.is_enabled }}"
+                                            data-default="{{ channel.is_default }}"
+                                            data-smtp-host="{{ channel.smtp_host or '' }}"
+                                            data-smtp-port="{{ channel.smtp_port or '' }}"
+                                            data-smtp-username="{{ channel.smtp_username or '' }}"
+                                            data-smtp-tls="{{ channel.smtp_use_tls }}"
+                                            data-smtp-from="{{ channel.smtp_from_email or '' }}"
+                                            data-smtp-to="{{ channel.smtp_to_emails or '' }}"
+                                            data-slack-webhook="{{ channel.slack_webhook_url or '' }}"
+                                            data-slack-channel="{{ channel.slack_channel or '' }}"
+                                            data-teams-webhook="{{ channel.teams_webhook_url or '' }}"
+                                            data-webhook-url="{{ channel.webhook_url or '' }}"
+                                            data-webhook-method="{{ channel.webhook_method or 'POST' }}"
+                                            data-webhook-headers="{{ channel.webhook_headers or '' }}">
+                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger btn-delete-channel" data-id="{{ channel.id }}" data-name="{{ channel.name }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-megaphone fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">No notification channels configured yet.</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#channelModal" onclick="resetChannelForm()">
+                        <i class="bi bi-plus-lg me-1"></i> Add Your First Channel
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Channel Modal -->
+<div class="modal fade" id="channelModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="channelModalTitle">Add Notification Channel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="channelForm">
+                    <input type="hidden" name="channel_id" id="channelId">
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Channel Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="channelName" class="form-control" required
+                                   placeholder="e.g., DevOps Team Email">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Channel Type <span class="text-danger">*</span></label>
+                            <select name="channel_type" id="channelType" class="form-select" required>
+                                <option value="">Select type...</option>
+                                <option value="email">Email (SMTP)</option>
+                                <option value="slack">Slack</option>
+                                <option value="teams">Microsoft Teams</option>
+                                <option value="webhook">Generic Webhook</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_enabled" id="channelEnabled" checked>
+                                <label class="form-check-label" for="channelEnabled">Enabled</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="is_default" id="channelDefault">
+                                <label class="form-check-label" for="channelDefault">Default channel (receives all alerts)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Email Settings -->
+                    <div id="emailSettings" class="channel-settings" style="display:none">
+                        <h6 class="text-muted mb-3"><i class="bi bi-envelope me-1"></i> SMTP Configuration</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label">SMTP Host</label>
+                                <input type="text" name="smtp_host" id="smtpHost" class="form-control" placeholder="smtp.gmail.com">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Port</label>
+                                <input type="number" name="smtp_port" id="smtpPort" class="form-control" placeholder="587">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Username</label>
+                                <input type="text" name="smtp_username" id="smtpUsername" class="form-control" placeholder="your-email@gmail.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="smtp_password" id="smtpPassword" class="form-control" placeholder="Leave empty to keep existing">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="smtp_use_tls" id="smtpTls" checked>
+                                <label class="form-check-label" for="smtpTls">Use TLS</label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">From Email</label>
+                            <input type="email" name="smtp_from_email" id="smtpFromEmail" class="form-control" placeholder="alerts@example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">To Emails (comma-separated)</label>
+                            <input type="text" name="smtp_to_emails" id="smtpToEmails" class="form-control" placeholder="admin@example.com, devops@example.com">
+                        </div>
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-success" id="testSmtpBtn">
+                                <i class="bi bi-envelope-check me-1"></i> Send Test Email
+                            </button>
+                            <small class="text-muted ms-2">Verify SMTP settings before saving</small>
+                        </div>
+                    </div>
+
+                    <!-- Slack Settings -->
+                    <div id="slackSettings" class="channel-settings" style="display:none">
+                        <h6 class="text-muted mb-3"><i class="bi bi-slack me-1"></i> Slack Configuration</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Webhook URL</label>
+                            <input type="url" name="slack_webhook_url" id="slackWebhook" class="form-control"
+                                   placeholder="https://hooks.slack.com/services/...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Channel (optional)</label>
+                            <input type="text" name="slack_channel" id="slackChannel" class="form-control" placeholder="#alerts">
+                        </div>
+                    </div>
+
+                    <!-- Teams Settings -->
+                    <div id="teamsSettings" class="channel-settings" style="display:none">
+                        <h6 class="text-muted mb-3"><i class="bi bi-microsoft-teams me-1"></i> Microsoft Teams Configuration</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Webhook URL</label>
+                            <input type="url" name="teams_webhook_url" id="teamsWebhook" class="form-control"
+                                   placeholder="https://outlook.office.com/webhook/...">
+                        </div>
+                    </div>
+
+                    <!-- Webhook Settings -->
+                    <div id="webhookSettings" class="channel-settings" style="display:none">
+                        <h6 class="text-muted mb-3"><i class="bi bi-globe me-1"></i> Webhook Configuration</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-9">
+                                <label class="form-label">Webhook URL</label>
+                                <input type="url" name="webhook_url" id="webhookUrl" class="form-control"
+                                       placeholder="https://api.example.com/webhook">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Method</label>
+                                <select name="webhook_method" id="webhookMethod" class="form-select">
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Custom Headers (JSON)</label>
+                            <textarea name="webhook_headers" id="webhookHeaders" class="form-control" rows="3"
+                                      placeholder='{"Authorization": "Bearer xxx"}'></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveChannelBtn">
+                    <i class="bi bi-check-lg me-1"></i> Save Channel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Show/hide settings based on channel type
+$('#channelType').on('change', function() {
+    $('.channel-settings').hide();
+    const type = $(this).val();
+    if (type === 'email') $('#emailSettings').show();
+    else if (type === 'slack') $('#slackSettings').show();
+    else if (type === 'teams') $('#teamsSettings').show();
+    else if (type === 'webhook') $('#webhookSettings').show();
+});
+
+function resetChannelForm() {
+    $('#channelModalTitle').text('Add Notification Channel');
+    $('#channelForm')[0].reset();
+    $('#channelId').val('');
+    $('.channel-settings').hide();
+    $('#channelEnabled').prop('checked', true);
+    $('#channelDefault').prop('checked', false);
+}
+
+// Edit channel
+$('.btn-edit-channel').on('click', function() {
+    const d = $(this).data();
+    $('#channelModalTitle').text('Edit Notification Channel');
+    $('#channelId').val(d.id);
+    $('#channelName').val(d.name);
+    $('#channelType').val(d.type).trigger('change');
+    $('#channelEnabled').prop('checked', d.enabled === 'True' || d.enabled === true);
+    $('#channelDefault').prop('checked', d.default === 'True' || d.default === true);
+
+    // Type-specific
+    if (d.type === 'email') {
+        $('#smtpHost').val(d.smtpHost);
+        $('#smtpPort').val(d.smtpPort);
+        $('#smtpUsername').val(d.smtpUsername);
+        $('#smtpTls').prop('checked', d.smtpTls === 'True' || d.smtpTls === true);
+        $('#smtpFromEmail').val(d.smtpFrom);
+        $('#smtpToEmails').val(d.smtpTo);
+    } else if (d.type === 'slack') {
+        $('#slackWebhook').val(d.slackWebhook);
+        $('#slackChannel').val(d.slackChannel);
+    } else if (d.type === 'teams') {
+        $('#teamsWebhook').val(d.teamsWebhook);
+    } else if (d.type === 'webhook') {
+        $('#webhookUrl').val(d.webhookUrl);
+        $('#webhookMethod').val(d.webhookMethod);
+        $('#webhookHeaders').val(d.webhookHeaders);
+    }
+
+    new bootstrap.Modal('#channelModal').show();
+});
+
+// Save channel
+$('#saveChannelBtn').on('click', function() {
+    const formData = new FormData($('#channelForm')[0]);
+    fetch('{{ url_for("settings.save_notification") }}', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({ title: 'Saved!', text: data.message, icon: 'success', timer: 1500, showConfirmButton: false });
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    });
+});
+
+// Test channel
+$('.btn-test-channel').on('click', function() {
+    const id = $(this).data('id');
+    const btn = $(this);
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+
+    fetch(`/settings/notifications/test/${id}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+        btn.prop('disabled', false).html('<i class="bi bi-send me-1"></i> Test');
+        if (data.success) {
+            Swal.fire({ title: 'Success!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+        } else {
+            Swal.fire('Test Failed', data.message, 'error');
+        }
+    })
+    .catch(() => {
+        btn.prop('disabled', false).html('<i class="bi bi-send me-1"></i> Test');
+        Swal.fire('Error', 'Failed to send test notification.', 'error');
+    });
+});
+
+// Test SMTP settings from form (before saving)
+$('#testSmtpBtn').on('click', function() {
+    const btn = $(this);
+    const smtpData = {
+        smtp_host: $('#smtpHost').val(),
+        smtp_port: $('#smtpPort').val(),
+        smtp_username: $('#smtpUsername').val(),
+        smtp_password: $('#smtpPassword').val(),
+        smtp_use_tls: $('#smtpTls').is(':checked'),
+        smtp_from_email: $('#smtpFromEmail').val(),
+        smtp_to_emails: $('#smtpToEmails').val()
+    };
+
+    if (!smtpData.smtp_host || !smtpData.smtp_port || !smtpData.smtp_from_email || !smtpData.smtp_to_emails) {
+        Swal.fire('Missing Fields', 'Please fill in SMTP Host, Port, From Email, and To Emails.', 'warning');
+        return;
+    }
+
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Sending...');
+
+    fetch('{{ url_for("settings.test_smtp") }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(smtpData)
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.prop('disabled', false).html('<i class="bi bi-envelope-check me-1"></i> Send Test Email');
+        if (data.success) {
+            Swal.fire({ title: 'Email Sent!', text: data.message, icon: 'success' });
+        } else {
+            Swal.fire('SMTP Test Failed', data.message, 'error');
+        }
+    })
+    .catch(() => {
+        btn.prop('disabled', false).html('<i class="bi bi-envelope-check me-1"></i> Send Test Email');
+        Swal.fire('Error', 'Failed to send test email.', 'error');
+    });
+});
+
+// Delete channel
+$('.btn-delete-channel').on('click', function() {
+    const id = $(this).data('id');
+    const name = $(this).data('name');
+    Swal.fire({
+        title: 'Delete Channel?',
+        text: `Are you sure you want to delete "${name}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/settings/notifications/delete/${id}`, { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ title: 'Deleted!', text: data.message, icon: 'success', timer: 1500, showConfirmButton: false });
+                    setTimeout(() => location.reload(), 1500);
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

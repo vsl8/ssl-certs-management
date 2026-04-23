@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Certificates - SSL Cert Manager{% endblock %}
+{% block page_title %}Certificates{% endblock %}
+
+{% block content %}
+<div class="card admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-file-earmark-lock2 me-2"></i>All Certificates</h6>
+        <a href="{{ url_for('certificates.add_cert') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> Add Certificate
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="certsTable" class="table table-hover table-striped" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Common Name</th>
+                        <th>Valid From</th>
+                        <th>Expires</th>
+                        <th>Days Left</th>
+                        <th>Domains (SAN)</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const table = $('#certsTable').DataTable({
+        ajax: {
+            url: '{{ url_for("certificates.api_list") }}',
+            dataSrc: 'data'
+        },
+        columns: [
+            {
+                data: 'common_name',
+                render: function(data, type, row) {
+                    return `<a href="/certificates/view/${row.id}" class="text-decoration-none fw-semibold">${data}</a>`;
+                }
+            },
+            { data: 'valid_from' },
+            {
+                data: 'valid_until',
+                render: function(data, type, row) {
+                    if (data === 'N/A') return data;
+                    let cls = '';
+                    if (row.days_until_expiry !== null && row.days_until_expiry <= 15) {
+                        cls = 'text-danger fw-bold';
+                    } else if (row.days_until_expiry !== null && row.days_until_expiry <= 30) {
+                        cls = 'text-warning fw-bold';
+                    }
+                    return `<span class="${cls}">${data}</span>`;
+                }
+            },
+            {
+                data: 'days_until_expiry',
+                render: function(data, type, row) {
+                    if (data === null) return 'N/A';
+                    let badge = 'bg-success';
+                    if (data <= 0) badge = 'bg-dark';
+                    else if (data <= 7) badge = 'bg-danger';
+                    else if (data <= 15) badge = 'bg-warning text-dark';
+                    else if (data <= 30) badge = 'bg-info';
+                    return `<span class="badge ${badge}">${data} days</span>`;
+                }
+            },
+            {
+                data: 'san_domains',
+                render: function(d) { return d ? `<small>${d}</small>` : '<small class="text-muted">N/A</small>'; }
+            },
+            {
+                data: 'status',
+                render: function(data) {
+                    const map = {
+                        'healthy': '<span class="badge bg-success">Healthy</span>',
+                        'attention': '<span class="badge bg-info">Attention</span>',
+                        'warning': '<span class="badge bg-warning text-dark">Warning</span>',
+                        'critical': '<span class="badge bg-danger">Critical</span>',
+                        'expired': '<span class="badge bg-dark">Expired</span>',
+                    };
+                    return map[data] || data;
+                }
+            },
+            {
+                data: null,
+                orderable: false,
+                render: function(data, type, row) {
+                    return `
+                        <div class="btn-group btn-group-sm">
+                            <a href="/certificates/view/${row.id}" class="btn btn-outline-primary" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="/certificates/download/${row.id}" class="btn btn-outline-success" title="Download">
+                                <i class="bi bi-download"></i>
+                            </a>
+                            <a href="/certificates/edit/${row.id}" class="btn btn-outline-secondary" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button class="btn btn-outline-danger btn-delete" data-id="${row.id}" data-name="${row.common_name}" title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>`;
+                }
+            }
+        ],
+        order: [[6, 'asc']],
+        pageLength: 25,
+        language: {
+            emptyTable: "No certificates found. Click 'Add Certificate' to get started.",
+            zeroRecords: "No matching certificates found."
+        },
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+    });
+
+    // Delete handler with SweetAlert
+    $('#certsTable').on('click', '.btn-delete', function() {
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+
+        Swal.fire({
+            title: 'Delete Certificate?',
+            html: `Are you sure you want to delete <strong>${name}</strong>?<br><br>
+                   <div class="form-check text-start">
+                       <input class="form-check-input" type="checkbox" id="deleteFileCheck">
+                       <label class="form-check-label" for="deleteFileCheck">Also delete the certificate file from disk</label>
+                   </div>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const deleteFile = document.getElementById('deleteFileCheck')?.checked || false;
+                const formData = new FormData();
+                formData.append('delete_file', deleteFile ? 'true' : 'false');
+
+                fetch(`/certificates/delete/${id}`, {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Deleted!',
+                            text: data.message,
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false,
+                        });
+                        table.ajax.reload();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(() => Swal.fire('Error', 'Failed to delete certificate.', 'error'));
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

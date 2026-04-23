@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}General Settings - SSL Cert Manager{% endblock %}
+{% block page_title %}General Settings{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-8">
+        <div class="card admin-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>General Settings</h6>
+            </div>
+            <div class="card-body">
+                <form id="settingsForm">
+                    <!-- App Name -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Application Name</label>
+                        <input type="text" name="app_name" class="form-control"
+                               value="{{ settings.get('app_name', {}).value if settings.get('app_name') else 'SSL Cert Manager' }}">
+                    </div>
+
+                    <!-- Certificate Storage Path -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Certificate Storage Path</label>
+                        <input type="text" name="cert_storage_path" class="form-control"
+                               value="{{ settings.get('cert_storage_path', {}).value if settings.get('cert_storage_path') else '/etc/pki/tls/certs' }}">
+                        <small class="text-muted">Default: /etc/pki/tls/certs — This is where uploaded certificates will be stored</small>
+                    </div>
+
+                    <!-- Alert Check Interval -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Alert Check Interval (minutes)</label>
+                        <input type="number" name="alert_check_interval" class="form-control"
+                               value="{{ settings.get('alert_check_interval', {}).value if settings.get('alert_check_interval') else '60' }}"
+                               min="1" max="1440">
+                        <small class="text-muted">How often the system checks for expiring certificates and sends alerts</small>
+                    </div>
+
+                    <!-- Auto Refresh Expiry -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" name="auto_refresh_expiry"
+                                   value="true"
+                                   {% if not settings.get('auto_refresh_expiry') or settings.get('auto_refresh_expiry').value == 'true' %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="autoRefresh">
+                                Auto-refresh certificate expiry data
+                            </label>
+                        </div>
+                        <small class="text-muted">Automatically update days-until-expiry for all certificates</small>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3 text-muted"><i class="bi bi-journal-text me-1"></i>Logging Configuration</h6>
+
+                    <!-- Log File Path -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Log File Directory</label>
+                        <input type="text" name="log_file_path" class="form-control"
+                               value="{{ settings.get('log_file_path', {}).value if settings.get('log_file_path') else './logs' }}">
+                        <small class="text-muted">Directory where <code>certmanager.log</code> is written (default: <code>./logs</code>). Rotated at 10 MB, 5 backups kept.</small>
+                    </div>
+
+                    <!-- Log Level -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Log Level</label>
+                        <select name="log_level" class="form-select">
+                            {% set current_level = settings.get('log_level', {}).value if settings.get('log_level') else 'INFO' %}
+                            {% for lvl in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] %}
+                            <option value="{{ lvl }}" {% if current_level == lvl %}selected{% endif %}>{{ lvl }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Set the verbosity of application logs. <code>DEBUG</code> is most verbose, <code>CRITICAL</code> is least.</small>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3 text-muted">Database Configuration</h6>
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <small class="text-muted">Current Database:</small>
+                                    <span class="fw-semibold ms-1">
+                                        {% if 'sqlite' in config.SQLALCHEMY_DATABASE_URI %}
+                                        SQLite
+                                        {% else %}
+                                        MariaDB
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted">To switch databases, set the <code>DB_TYPE</code> environment variable to <code>mariadb</code> and configure the connection settings.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="bi bi-check-lg me-1"></i> Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$('#settingsForm').on('submit', function(e) {
+    e.preventDefault();
+    const btn = $('#submitBtn');
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
+
+    const formData = new FormData(this);
+    // Handle unchecked checkbox
+    if (!$('#autoRefresh').is(':checked')) {
+        formData.set('auto_refresh_expiry', 'false');
+    }
+
+    fetch('{{ url_for("settings.save_settings") }}', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Save Settings');
+        if (data.success) {
+            Swal.fire({ title: 'Saved!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+        } else {
+            Swal.fire('Error', data.message, 'error');
+        }
+    })
+    .catch(() => {
+        btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Save Settings');
+        Swal.fire('Error', 'Failed to save settings.', 'error');
+    });
+});
+</script>
+{% endblock %}

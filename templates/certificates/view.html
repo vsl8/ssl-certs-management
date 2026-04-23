@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}{{ cert.common_name or cert.filename }} - SSL Cert Manager{% endblock %}
+{% block page_title %}Certificate Details{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Header Card -->
+    <div class="col-12">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h4 class="mb-1">
+                            <i class="bi bi-file-earmark-lock2 text-primary me-2"></i>
+                            {{ cert.common_name or cert.filename }}
+                        </h4>
+                        <p class="text-muted mb-0">{{ cert.filename }} &middot; .{{ cert.file_type }}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if cert.status == 'healthy' %}
+                        <span class="badge bg-success fs-6 py-2 px-3"><i class="bi bi-check-circle me-1"></i> Healthy</span>
+                        {% elif cert.status == 'attention' %}
+                        <span class="badge bg-info fs-6 py-2 px-3"><i class="bi bi-info-circle me-1"></i> Attention</span>
+                        {% elif cert.status == 'warning' %}
+                        <span class="badge bg-warning text-dark fs-6 py-2 px-3"><i class="bi bi-exclamation-triangle me-1"></i> Warning</span>
+                        {% elif cert.status == 'critical' %}
+                        <span class="badge bg-danger fs-6 py-2 px-3"><i class="bi bi-exclamation-circle me-1"></i> Critical</span>
+                        {% else %}
+                        <span class="badge bg-dark fs-6 py-2 px-3"><i class="bi bi-x-circle me-1"></i> Expired</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expiry Info -->
+    {% if cert.valid_until %}
+    <div class="col-12">
+        <div class="card admin-card {% if cert.days_until_expiry is not none and cert.days_until_expiry <= 7 %}border-danger{% elif cert.days_until_expiry is not none and cert.days_until_expiry <= 15 %}border-warning{% endif %}">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="text-muted small">Valid From</div>
+                        <div class="fw-semibold">{{ cert.valid_from.strftime('%B %d, %Y %H:%M UTC') if cert.valid_from else 'N/A' }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">Expires</div>
+                        <div class="fw-bold {% if cert.days_until_expiry is not none and cert.days_until_expiry <= 15 %}text-danger{% endif %} fs-5">
+                            {{ cert.valid_until.strftime('%B %d, %Y %H:%M UTC') }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-muted small">Days Remaining</div>
+                        <div class="fw-bold fs-3 {% if cert.days_until_expiry is not none and cert.days_until_expiry <= 0 %}text-dark{% elif cert.days_until_expiry is not none and cert.days_until_expiry <= 7 %}text-danger{% elif cert.days_until_expiry is not none and cert.days_until_expiry <= 15 %}text-warning{% elif cert.days_until_expiry is not none and cert.days_until_expiry <= 30 %}text-info{% else %}text-success{% endif %}">
+                            {{ cert.days_until_expiry if cert.days_until_expiry is not none else 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Subject Details -->
+    <div class="col-xl-6">
+        <div class="card admin-card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Subject Details</h6></div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:40%">Common Name (CN)</td><td class="fw-semibold">{{ cert.common_name or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Organization (O)</td><td>{{ cert.organization or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Organizational Unit (OU)</td><td>{{ cert.organizational_unit or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Country (C)</td><td>{{ cert.country or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">State (ST)</td><td>{{ cert.state or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Locality (L)</td><td>{{ cert.locality or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Email</td><td>{{ cert.email or 'N/A' }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Issuer Details -->
+    <div class="col-xl-6">
+        <div class="card admin-card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-building me-2"></i>Issuer Details</h6></div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:40%">Common Name (CN)</td><td class="fw-semibold">{{ cert.issuer_common_name or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Organization (O)</td><td>{{ cert.issuer_organization or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Country (C)</td><td>{{ cert.issuer_country or 'N/A' }}</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technical Details -->
+    <div class="col-xl-6">
+        <div class="card admin-card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-cpu me-2"></i>Technical Details</h6></div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" style="width:40%">Serial Number</td><td><code class="small">{{ cert.serial_number or 'N/A' }}</code></td></tr>
+                    <tr><td class="text-muted">Signature Algorithm</td><td>{{ cert.signature_algorithm or 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Key Size</td><td>{{ cert.key_size or 'N/A' }}{% if cert.key_size %} bits{% endif %}</td></tr>
+                    <tr><td class="text-muted">Version</td><td>{{ cert.version if cert.version is not none else 'N/A' }}</td></tr>
+                    <tr><td class="text-muted">Is CA</td><td>{{ 'Yes' if cert.is_ca else 'No' }}</td></tr>
+                    <tr><td class="text-muted">File Size</td><td>{{ cert.file_size }} bytes</td></tr>
+                    <tr><td class="text-muted">File Path</td><td><small>{{ cert.file_path }}</small></td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fingerprints & SAN -->
+    <div class="col-xl-6">
+        <div class="card admin-card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-fingerprint me-2"></i>Fingerprints & Domains</h6></div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr><td class="text-muted" style="width:30%">SHA-256</td><td><code class="small text-break">{{ cert.fingerprint_sha256 or 'N/A' }}</code></td></tr>
+                    <tr><td class="text-muted">SHA-1</td><td><code class="small text-break">{{ cert.fingerprint_sha1 or 'N/A' }}</code></td></tr>
+                </table>
+
+                <h6 class="mt-3 mb-2">Subject Alternative Names (SAN)</h6>
+                {% if san_list %}
+                <div class="d-flex flex-wrap gap-1">
+                    {% for domain in san_list %}
+                    <span class="badge bg-primary-subtle text-primary">{{ domain }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0">No SAN entries found</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes & Tags -->
+    <div class="col-12">
+        <div class="card admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-sticky me-2"></i>Notes & Tags</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <label class="form-label text-muted small">Notes</label>
+                        <p>{{ cert.notes or 'No notes' }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small">Tags</label>
+                        <div>
+                            {% if cert.tags %}
+                                {% for tag in cert.tags.split(',') %}
+                                <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                                {% endfor %}
+                            {% else %}
+                            <span class="text-muted">No tags</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="col-12">
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('certificates.edit_cert', cert_id=cert.id) }}" class="btn btn-primary">
+                <i class="bi bi-pencil me-1"></i> Edit
+            </a>
+            <button class="btn btn-danger" id="deleteBtn">
+                <i class="bi bi-trash me-1"></i> Delete
+            </button>
+            <a href="{{ url_for('certificates.list_certs') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$('#deleteBtn').on('click', function() {
+    Swal.fire({
+        title: 'Delete Certificate?',
+        html: `Are you sure you want to delete <strong>{{ cert.common_name or cert.filename }}</strong>?<br><br>
+               <div class="form-check text-start">
+                   <input class="form-check-input" type="checkbox" id="deleteFileCheck">
+                   <label class="form-check-label" for="deleteFileCheck">Also delete the certificate file from disk</label>
+               </div>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const deleteFile = document.getElementById('deleteFileCheck')?.checked || false;
+            const formData = new FormData();
+            formData.append('delete_file', deleteFile ? 'true' : 'false');
+
+            fetch('{{ url_for("certificates.delete_cert", cert_id=cert.id) }}', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ title: 'Deleted!', text: data.message, icon: 'success', timer: 2000, showConfirmButton: false });
+                    setTimeout(() => window.location.href = '{{ url_for("certificates.list_certs") }}', 2000);
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(() => Swal.fire('Error', 'Failed to delete.', 'error'));
+        }
+    });
+});
+</script>
+{% endblock %}

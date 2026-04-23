@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Certificate Conversion - SSL Cert Manager{% endblock %}
+{% block page_title %}Certificate Conversion Utility{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Conversion Tool -->
+    <div class="col-xl-8">
+        <div class="card admin-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-arrow-left-right me-2"></i>Convert Certificate Format</h6>
+            </div>
+            <div class="card-body">
+                <form id="convertForm" enctype="multipart/form-data">
+                    <!-- Step 1: Upload -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Step 1: Select Certificate File</label>
+                        <div class="upload-zone" id="convUploadZone">
+                            <input type="file" name="cert_file" id="convCertFile" class="d-none"
+                                   accept=".pem,.crt,.cer,.der,.p12,.pfx,.key,.p7b,.p7c">
+                            <div class="upload-content text-center py-4" id="convUploadContent">
+                                <i class="bi bi-cloud-arrow-up fs-1 text-primary"></i>
+                                <p class="mt-2 mb-1">Drag & drop or <a href="#" id="convBrowseLink">browse</a></p>
+                                <small class="text-muted">Supported: .pem, .crt, .cer, .der, .p12, .pfx, .key, .p7b, .p7c</small>
+                            </div>
+                            <div class="selected-file d-none" id="convSelectedFile">
+                                <i class="bi bi-file-earmark text-primary me-2"></i>
+                                <span id="convSelectedFileName"></span>
+                                <span class="badge bg-primary ms-2" id="convDetectedFormat"></span>
+                                <button type="button" class="btn btn-sm btn-outline-danger ms-2" id="convClearFile">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Password (if needed) -->
+                    <div class="mb-3" id="convPasswordGroup" style="display:none">
+                        <label class="form-label fw-semibold">Password (for encrypted files)</label>
+                        <input type="password" name="password" class="form-control" placeholder="Certificate password">
+                    </div>
+
+                    <!-- Step 3: Choose output format -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Step 2: Choose Output Format</label>
+                        <div id="outputFormats" class="d-flex flex-wrap gap-2">
+                            <div class="text-muted small">Select a file first to see available output formats</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Optional Key File (for PFX output) -->
+                    <div class="mb-3" id="convKeyFileGroup" style="display:none">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-key me-1"></i>Private Key File (Optional)
+                        </label>
+                        <div class="input-group">
+                            <input type="file" name="key_file" id="convKeyFile" class="form-control" accept=".key,.pem">
+                            <button type="button" class="btn btn-outline-secondary" id="clearKeyFile">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">If your certificate file doesn't contain a private key, upload a separate .key or .pem key file here.</small>
+                    </div>
+
+                    <!-- Key Password (if key file is encrypted) -->
+                    <div class="mb-3" id="convKeyPasswordGroup" style="display:none">
+                        <label class="form-label fw-semibold">Key File Password</label>
+                        <input type="password" name="key_password" class="form-control" placeholder="Password for encrypted key file">
+                    </div>
+
+                    <!-- Step 5: Export password (for PFX output) -->
+                    <div class="mb-3" id="convExportPasswordGroup" style="display:none">
+                        <label class="form-label fw-semibold">Export Password (for PFX output)</label>
+                        <input type="password" name="export_password" class="form-control" placeholder="Optional password for PFX file">
+                    </div>
+
+                    <!-- Convert Button -->
+                    <button type="submit" class="btn btn-primary btn-lg" id="convertBtn" disabled>
+                        <i class="bi bi-arrow-left-right me-1"></i> Convert & Download
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conversion Reference -->
+    <div class="col-xl-4">
+        <div class="card admin-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Conversion Reference</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-borderless">
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for input_fmt, output_fmts in conversion_map.items() %}
+                            <tr>
+                                <td><span class="badge bg-primary">.{{ input_fmt }}</span></td>
+                                <td>
+                                    {% for fmt in output_fmts %}
+                                    <span class="badge bg-secondary">.{{ fmt }}</span>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <hr>
+
+                <h6 class="mt-3">Format Guide</h6>
+                <ul class="small mb-0">
+                    <li><strong>.PEM</strong> — Base64 encoded, most common format</li>
+                    <li><strong>.DER</strong> — Binary encoded certificate</li>
+                    <li><strong>.CRT / .CER</strong> — Certificate file (PEM or DER)</li>
+                    <li><strong>.PFX / .P12</strong> — PKCS#12, contains cert + private key</li>
+                    <li><strong>.P7B</strong> — PKCS#7, contains cert chain only</li>
+                    <li><strong>.KEY</strong> — Private key file</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const conversionMap = {{ conversion_map | tojson | safe }};
+let selectedOutputFormat = '';
+
+// File handling
+$('#convBrowseLink').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $('#convCertFile').trigger('click');
+});
+$('#convUploadZone').on('click', function(e) {
+    if (e.target === this || $(e.target).hasClass('upload-content') || $(e.target).closest('.upload-content').length > 0) {
+        if (!$(e.target).is('a')) {
+            $('#convCertFile').trigger('click');
+        }
+    }
+});
+
+$('#convUploadZone').on('dragover', function(e) {
+    e.preventDefault(); $(this).addClass('drag-over');
+}).on('dragleave drop', function(e) {
+    e.preventDefault(); $(this).removeClass('drag-over');
+}).on('drop', function(e) {
+    const files = e.originalEvent.dataTransfer.files;
+    if (files.length) { $('#convCertFile')[0].files = files; showConvFile(files[0]); }
+});
+
+$('#convCertFile').on('change', function() {
+    if (this.files.length) showConvFile(this.files[0]);
+});
+
+$('#convClearFile').on('click', function(e) {
+    e.stopPropagation();
+    $('#convCertFile').val('');
+    $('#convKeyFile').val('');
+    $('#convUploadContent').removeClass('d-none');
+    $('#convSelectedFile').addClass('d-none');
+    $('#convPasswordGroup').hide();
+    $('#convKeyFileGroup').hide();
+    $('#convKeyPasswordGroup').hide();
+    $('#convExportPasswordGroup').hide();
+    $('#outputFormats').html('<div class="text-muted small">Select a file first to see available output formats</div>');
+    $('#convertBtn').prop('disabled', true);
+    selectedOutputFormat = '';
+});
+
+function showConvFile(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    $('#convSelectedFileName').text(file.name);
+    $('#convDetectedFormat').text('.' + ext);
+    $('#convUploadContent').addClass('d-none');
+    $('#convSelectedFile').removeClass('d-none');
+
+    // Show password for encrypted formats
+    if (['pfx', 'p12'].includes(ext)) {
+        $('#convPasswordGroup').show();
+    } else {
+        $('#convPasswordGroup').hide();
+    }
+
+    // Show available output formats
+    const formats = conversionMap[ext] || [];
+    if (formats.length) {
+        let html = '';
+        formats.forEach(fmt => {
+            html += `<button type="button" class="btn btn-outline-primary format-btn" data-format="${fmt}">
+                        <i class="bi bi-file-earmark me-1"></i>.${fmt.toUpperCase()}
+                     </button>`;
+        });
+        $('#outputFormats').html(html);
+    } else {
+        $('#outputFormats').html('<div class="text-danger small">No conversions available for this format</div>');
+    }
+
+    selectedOutputFormat = '';
+    $('#convertBtn').prop('disabled', true);
+}
+
+// Clear key file
+$('#clearKeyFile').on('click', function() {
+    $('#convKeyFile').val('');
+    $('#convKeyPasswordGroup').hide();
+});
+
+// Show key password field when key file is selected
+$('#convKeyFile').on('change', function() {
+    if (this.files.length) {
+        $('#convKeyPasswordGroup').show();
+    } else {
+        $('#convKeyPasswordGroup').hide();
+    }
+});
+
+// Format selection
+$(document).on('click', '.format-btn', function() {
+    $('.format-btn').removeClass('btn-primary').addClass('btn-outline-primary');
+    $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+    selectedOutputFormat = $(this).data('format');
+    $('#convertBtn').prop('disabled', false);
+
+    // Get current input format
+    const inputExt = $('#convDetectedFormat').text().replace('.', '').toLowerCase();
+
+    // Show key file option for PFX output when input doesn't typically contain a key
+    if (selectedOutputFormat === 'pfx' && ['pem', 'crt', 'cer', 'der'].includes(inputExt)) {
+        $('#convKeyFileGroup').show();
+        $('#convExportPasswordGroup').show();
+    } else if (selectedOutputFormat === 'pfx') {
+        $('#convKeyFileGroup').hide();
+        $('#convExportPasswordGroup').show();
+    } else {
+        $('#convKeyFileGroup').hide();
+        $('#convKeyPasswordGroup').hide();
+        $('#convKeyFile').val('');
+        $('#convExportPasswordGroup').hide();
+    }
+});
+
+// Convert
+$('#convertForm').on('submit', function(e) {
+    e.preventDefault();
+
+    if (!$('#convCertFile')[0].files.length || !selectedOutputFormat) {
+        Swal.fire('Error', 'Please select a file and output format.', 'warning');
+        return;
+    }
+
+    const btn = $('#convertBtn');
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Converting...');
+
+    const formData = new FormData(this);
+    formData.append('output_format', selectedOutputFormat);
+
+    fetch('{{ url_for("conversion.convert") }}', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        btn.prop('disabled', false).html('<i class="bi bi-arrow-left-right me-1"></i> Convert & Download');
+
+        if (response.ok) {
+            return response.blob().then(blob => {
+                const disposition = response.headers.get('content-disposition');
+                let filename = 'converted.' + selectedOutputFormat;
+                if (disposition) {
+                    const match = disposition.match(/filename=(.+)/);
+                    if (match) filename = match[1].replace(/"/g, '');
+                }
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = filename;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Certificate converted and downloaded successfully!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        } else {
+            return response.json().then(data => {
+                Swal.fire('Conversion Failed', data.message || 'Unknown error', 'error');
+            });
+        }
+    })
+    .catch(() => {
+        btn.prop('disabled', false).html('<i class="bi bi-arrow-left-right me-1"></i> Convert & Download');
+        Swal.fire('Error', 'Conversion failed. Please try again.', 'error');
+    });
+});
+</script>
+{% endblock %}
