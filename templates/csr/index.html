@@ -437,23 +437,19 @@ $('#csrForm').on('submit', function(e) {
     });
 });
 
-// Copy CSR to clipboard
-$('#copyCSRBtn').on('click', function() {
-    const content = $('#csrContentArea').val();
-    navigator.clipboard.writeText(content).then(() => {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'CSR copied to clipboard!',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        });
-    }).catch(() => {
-        // Fallback for older browsers
-        const textarea = document.getElementById('csrContentArea');
-        textarea.select();
+// Copy to clipboard helper function
+function copyToClipboard(text) {
+    // Create a temporary textarea
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    
+    try {
         document.execCommand('copy');
         Swal.fire({
             toast: true,
@@ -464,7 +460,24 @@ $('#copyCSRBtn').on('click', function() {
             timer: 2000,
             timerProgressBar: true
         });
-    });
+    } catch (err) {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'error',
+            title: 'Failed to copy',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    }
+    
+    document.body.removeChild(textarea);
+}
+
+// Copy CSR to clipboard
+$('#copyCSRBtn').on('click', function() {
+    const content = $('#csrContentArea').val();
+    copyToClipboard(content);
 });
 
 // New Config Template Form
@@ -546,31 +559,7 @@ $('.view-csr-btn').on('click', function() {
 // Copy CSR from view modal
 $('.copy-view-csr-btn').on('click', function() {
     const content = $('#viewCSRContent').val();
-    navigator.clipboard.writeText(content).then(() => {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'CSR copied to clipboard!',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        });
-    }).catch(() => {
-        // Fallback for older browsers
-        const textarea = document.getElementById('viewCSRContent');
-        textarea.select();
-        document.execCommand('copy');
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'success',
-            title: 'CSR copied to clipboard!',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        });
-    });
+    copyToClipboard(content);
 });
 
 // Delete CSR
