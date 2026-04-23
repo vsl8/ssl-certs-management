@@ -18,11 +18,11 @@
                         <label class="form-label fw-semibold">Step 1: Select Certificate File</label>
                         <div class="upload-zone" id="convUploadZone">
                             <input type="file" name="cert_file" id="convCertFile" class="d-none"
-                                   accept=".pem,.crt,.cer,.der,.p12,.pfx,.key,.p7b,.p7c">
+                                   accept=".pem,.crt,.cer,.der,.p12,.pfx,.key,.p7b,.p7c,.jks">
                             <div class="upload-content text-center py-4" id="convUploadContent">
                                 <i class="bi bi-cloud-arrow-up fs-1 text-primary"></i>
                                 <p class="mt-2 mb-1">Drag & drop or <a href="#" id="convBrowseLink">browse</a></p>
-                                <small class="text-muted">Supported: .pem, .crt, .cer, .der, .p12, .pfx, .key, .p7b, .p7c</small>
+                                <small class="text-muted">Supported: .pem, .crt, .cer, .der, .p12, .pfx, .key, .p7b, .p7c, .jks</small>
                             </div>
                             <div class="selected-file d-none" id="convSelectedFile">
                                 <i class="bi bi-file-earmark text-primary me-2"></i>
@@ -124,6 +124,7 @@
                     <li><strong>.PFX / .P12</strong> — PKCS#12, contains cert + private key</li>
                     <li><strong>.P7B</strong> — PKCS#7, contains cert chain only</li>
                     <li><strong>.KEY</strong> — Private key file</li>
+                    <li><strong>.JKS</strong> — Java KeyStore, used by Java applications</li>
                 </ul>
             </div>
         </div>
@@ -186,7 +187,7 @@ function showConvFile(file) {
     $('#convSelectedFile').removeClass('d-none');
 
     // Show password for encrypted formats
-    if (['pfx', 'p12'].includes(ext)) {
+    if (['pfx', 'p12', 'jks'].includes(ext)) {
         $('#convPasswordGroup').show();
     } else {
         $('#convPasswordGroup').hide();
@@ -235,11 +236,11 @@ $(document).on('click', '.format-btn', function() {
     // Get current input format
     const inputExt = $('#convDetectedFormat').text().replace('.', '').toLowerCase();
 
-    // Show key file option for PFX output when input doesn't typically contain a key
-    if (selectedOutputFormat === 'pfx' && ['pem', 'crt', 'cer', 'der'].includes(inputExt)) {
+    // Show key file option for PFX/JKS output when input doesn't typically contain a key
+    if (['pfx', 'jks'].includes(selectedOutputFormat) && ['pem', 'crt', 'cer', 'der', 'p7b'].includes(inputExt)) {
         $('#convKeyFileGroup').show();
         $('#convExportPasswordGroup').show();
-    } else if (selectedOutputFormat === 'pfx') {
+    } else if (['pfx', 'jks'].includes(selectedOutputFormat)) {
         $('#convKeyFileGroup').hide();
         $('#convExportPasswordGroup').show();
     } else {

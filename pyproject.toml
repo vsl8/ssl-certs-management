@@ -17,6 +17,7 @@ dependencies = [
     "pymysql>=1.1",
     "gunicorn>=25.3.0",
     "flask-login>=0.6.3",
+    "pyjks>=20.0.0",
 ]
 
 [dependency-groups]
