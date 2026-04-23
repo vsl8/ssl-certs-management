@@ -24,6 +24,8 @@ services:
       - certmanager_data:/app/instance
       # Certificate storage - mounted to host /etc/pki/tls/certs
       - /etc/pki/tls/certs:/etc/pki/tls/certs
+      - /etc/pki/tls/private:/etc/pki/tls/private
+      - /etc/pki/tls/csr_2026:/etc/pki/tls/csr_2026
       # Log files persistence
       - certmanager_logs:/app/logs
     healthcheck:
