@@ -16,6 +16,7 @@ from routes.dashboard import dashboard_bp
 from routes.certificates import certificates_bp
 from routes.settings import settings_bp
 from routes.conversion import conversion_bp
+from routes.csr import csr_bp
 
 log = get_logger('app')
 
@@ -57,6 +58,7 @@ def create_app():
     app.register_blueprint(certificates_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(conversion_bp)
+    app.register_blueprint(csr_bp)
 
     # Make config available in templates
     @app.context_processor

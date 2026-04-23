@@ -27,6 +27,26 @@
                         <small class="text-muted">Default: /etc/pki/tls/certs — This is where uploaded certificates will be stored</small>
                     </div>
 
+                    <hr>
+
+                    <h6 class="mb-3 text-muted"><i class="bi bi-file-earmark-plus me-1"></i>CSR Generation Settings</h6>
+
+                    <!-- CSR Storage Path -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">CSR Storage Path</label>
+                        <input type="text" name="csr_storage_path" class="form-control"
+                               value="{{ settings.get('csr_storage_path', {}).value if settings.get('csr_storage_path') else '/etc/pki/tls/csr_2026' }}">
+                        <small class="text-muted">Where CSR and config files will be saved. Change yearly (e.g., <code>/etc/pki/tls/csr_2026</code>)</small>
+                    </div>
+
+                    <!-- Default Private Key Path -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Default Private Key Path</label>
+                        <input type="text" name="csr_default_key_path" class="form-control"
+                               value="{{ settings.get('csr_default_key_path', {}).value if settings.get('csr_default_key_path') else '/etc/pki/tls/private' }}">
+                        <small class="text-muted">Default path for private keys used in CSR generation</small>
+                    </div>
+
                     <!-- Alert Check Interval -->
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Alert Check Interval (minutes)</label>

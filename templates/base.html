@@ -55,6 +55,13 @@
                         <span>Conversion Utility</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and 'csr' in request.endpoint %}active{% endif %}"
+                       href="{{ url_for('csr.index') }}">
+                        <i class="bi bi-file-earmark-plus"></i>
+                        <span>CSR Generation</span>
+                    </a>
+                </li>
 
                 <li class="nav-section-title">SETTINGS</li>
 

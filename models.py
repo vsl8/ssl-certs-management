@@ -193,6 +193,50 @@ class Setting(db.Model):
         return f'<Setting {self.key}={self.value}>'
 
 
+class CSRConfig(db.Model):
+    """CSR Configuration template model."""
+    __tablename__ = 'csr_configs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), nullable=False)
+    file_path = db.Column(db.String(1024), nullable=False)
+    
+    # Template fields (stored for quick reference)
+    country = db.Column(db.String(10), nullable=True)
+    state = db.Column(db.String(256), nullable=True)
+    locality = db.Column(db.String(256), nullable=True)
+    organization = db.Column(db.String(512), nullable=True)
+    organizational_unit = db.Column(db.String(512), nullable=True)
+    email = db.Column(db.String(256), nullable=True)
+    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<CSRConfig {self.name}>'
+
+
+class CSRRequest(db.Model):
+    """CSR Request model to track generated CSRs."""
+    __tablename__ = 'csr_requests'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(256), nullable=False)
+    csr_file_path = db.Column(db.String(1024), nullable=False)
+    config_file_path = db.Column(db.String(1024), nullable=True)
+    key_file_path = db.Column(db.String(1024), nullable=True)
+    
+    # CSR details
+    common_name = db.Column(db.String(512), nullable=True)
+    san_domains = db.Column(db.Text, nullable=True)  # JSON list of SAN domains
+    
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<CSRRequest {self.name}>'
+
+
 def init_db(app):
     """Initialize database and create tables."""
     db.init_app(app)
@@ -203,6 +247,9 @@ def init_db(app):
 
 def _seed_defaults():
     """Seed default settings and alert rules if they don't exist."""
+    from datetime import datetime
+    current_year = datetime.now().year
+    
     # Default settings
     defaults = {
         'cert_storage_path': ('/etc/pki/tls/certs', 'Default certificate storage path'),
@@ -211,6 +258,8 @@ def _seed_defaults():
         'auto_refresh_expiry': ('true', 'Automatically refresh certificate expiry data'),
         'log_file_path': (os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs'), 'Directory where log files are stored'),
         'log_level': ('INFO', 'Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)'),
+        'csr_storage_path': (f'/etc/pki/tls/csr_{current_year}', 'CSR and config files storage path'),
+        'csr_default_key_path': ('/etc/pki/tls/private', 'Default path for private keys used in CSR generation'),
     }
     for key, (value, desc) in defaults.items():
         if not Setting.query.filter_by(key=key).first():
