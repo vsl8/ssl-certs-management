@@ -1,8 +1,16 @@
 # syntax=docker/dockerfile:1
 FROM python:3.12-slim
 
-# Install uv
+# Install uv and build dependencies for compiling native extensions (twofish, pycryptodomex)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Install build tools and openssl
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libc-dev \
+    libffi-dev \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -13,7 +21,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Create directories for mounts
-RUN mkdir -p /app/instance /app/logs /etc/pki/tls/certs
+RUN mkdir -p /app/instance /app/logs /etc/pki/tls/certs /etc/pki/tls/private /etc/pki/tls/csr_2026
 
 # Copy dependency files first for better caching
 COPY pyproject.toml uv.lock* ./
