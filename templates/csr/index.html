@@ -24,7 +24,7 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Private Key File Path <span class="text-danger">*</span></label>
                             <input type="text" name="key_file_path" class="form-control" 
-                                   value="{{ key_path }}/mykey.key" placeholder="/etc/pki/tls/private/mykey.key" required>
+                                   value="{{ key_path }}/" placeholder="/etc/pki/tls/private/mykey.key" required>
                         </div>
                     </div>
 
@@ -442,11 +442,27 @@ $('#copyCSRBtn').on('click', function() {
     const content = $('#csrContentArea').val();
     navigator.clipboard.writeText(content).then(() => {
         Swal.fire({
+            toast: true,
+            position: 'top-end',
             icon: 'success',
-            title: 'Copied!',
-            text: 'CSR content copied to clipboard',
-            timer: 1500,
-            showConfirmButton: false
+            title: 'CSR copied to clipboard!',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+    }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.getElementById('csrContentArea');
+        textarea.select();
+        document.execCommand('copy');
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'CSR copied to clipboard!',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
         });
     });
 });
@@ -532,11 +548,27 @@ $('.copy-view-csr-btn').on('click', function() {
     const content = $('#viewCSRContent').val();
     navigator.clipboard.writeText(content).then(() => {
         Swal.fire({
+            toast: true,
+            position: 'top-end',
             icon: 'success',
-            title: 'Copied!',
-            text: 'CSR content copied to clipboard',
-            timer: 1500,
-            showConfirmButton: false
+            title: 'CSR copied to clipboard!',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+    }).catch(() => {
+        // Fallback for older browsers
+        const textarea = document.getElementById('viewCSRContent');
+        textarea.select();
+        document.execCommand('copy');
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'success',
+            title: 'CSR copied to clipboard!',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
         });
     });
 });
