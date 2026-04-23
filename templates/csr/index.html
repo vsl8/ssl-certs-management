@@ -438,8 +438,40 @@ $('#csrForm').on('submit', function(e) {
 });
 
 // Copy to clipboard helper function
-function copyToClipboard(text) {
-    function showSuccess() {
+function copyToClipboard(textareaId) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) {
+        console.error('Textarea not found:', textareaId);
+        return;
+    }
+    
+    // Temporarily remove readonly to ensure selection works
+    const wasReadonly = textarea.hasAttribute('readonly');
+    if (wasReadonly) {
+        textarea.removeAttribute('readonly');
+    }
+    
+    // Select all content
+    textarea.focus();
+    textarea.select();
+    
+    let success = false;
+    try {
+        success = document.execCommand('copy');
+        console.log('Copy command result:', success);
+    } catch (err) {
+        console.error('Copy command failed:', err);
+    }
+    
+    // Restore readonly
+    if (wasReadonly) {
+        textarea.setAttribute('readonly', '');
+    }
+    
+    // Deselect
+    window.getSelection().removeAllRanges();
+    
+    if (success) {
         Swal.fire({
             toast: true,
             position: 'top-end',
@@ -449,61 +481,24 @@ function copyToClipboard(text) {
             timer: 2000,
             timerProgressBar: true
         });
-    }
-    
-    function showError() {
+    } else {
+        // If execCommand fails, try to at least select the text for manual copy
+        textarea.focus();
+        textarea.select();
         Swal.fire({
             toast: true,
             position: 'top-end',
-            icon: 'error',
-            title: 'Failed to copy',
+            icon: 'warning',
+            title: 'Text selected. Press Ctrl+C to copy.',
             showConfirmButton: false,
-            timer: 2000
+            timer: 3000
         });
-    }
-    
-    // Use modern clipboard API if available (requires HTTPS)
-    if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(showSuccess).catch(showError);
-    } else {
-        // Fallback for HTTP or older browsers
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.setAttribute('readonly', '');
-        textarea.style.position = 'absolute';
-        textarea.style.left = '-9999px';
-        textarea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + 'px';
-        document.body.appendChild(textarea);
-        
-        // iOS Safari workaround
-        const range = document.createRange();
-        range.selectNodeContents(textarea);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        textarea.setSelectionRange(0, 999999);
-        
-        let success = false;
-        try {
-            success = document.execCommand('copy');
-        } catch (err) {
-            console.error('Copy failed:', err);
-        }
-        
-        document.body.removeChild(textarea);
-        
-        if (success) {
-            showSuccess();
-        } else {
-            showError();
-        }
     }
 }
 
 // Copy CSR to clipboard
 $('#copyCSRBtn').on('click', function() {
-    const content = $('#csrContentArea').val();
-    copyToClipboard(content);
+    copyToClipboard('csrContentArea');
 });
 
 // New Config Template Form
@@ -584,8 +579,7 @@ $('.view-csr-btn').on('click', function() {
 
 // Copy CSR from view modal
 $('.copy-view-csr-btn').on('click', function() {
-    const content = $('#viewCSRContent').val();
-    copyToClipboard(content);
+    copyToClipboard('viewCSRContent');
 });
 
 // Delete CSR
