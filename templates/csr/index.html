@@ -469,21 +469,34 @@ function copyToClipboard(text) {
         // Fallback for HTTP or older browsers
         const textarea = document.createElement('textarea');
         textarea.value = text;
-        textarea.style.position = 'fixed';
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'absolute';
         textarea.style.left = '-9999px';
-        textarea.style.top = '0';
+        textarea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + 'px';
         document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
         
+        // iOS Safari workaround
+        const range = document.createRange();
+        range.selectNodeContents(textarea);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        textarea.setSelectionRange(0, 999999);
+        
+        let success = false;
         try {
-            document.execCommand('copy');
-            showSuccess();
+            success = document.execCommand('copy');
         } catch (err) {
-            showError();
+            console.error('Copy failed:', err);
         }
         
         document.body.removeChild(textarea);
+        
+        if (success) {
+            showSuccess();
+        } else {
+            showError();
+        }
     }
 }
 
