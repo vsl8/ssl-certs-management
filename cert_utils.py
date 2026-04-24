@@ -276,3 +276,150 @@ def refresh_cert_expiry(cert_record):
         cert_record.days_until_expiry = days
         cert_record.is_expired = days <= 0
     return cert_record
+
+
+def extract_certificate_chain(file_path, password=None):
+    """
+    Extract certificate chain from a certificate file.
+    Returns a list of certificate details in hierarchical order
+    (end-entity first, then intermediates, then root).
+    """
+    chain = []
+    
+    try:
+        with open(file_path, 'rb') as f:
+            file_data = f.read()
+    except Exception as e:
+        log.warning('Could not read certificate file for chain extraction: %s', e)
+        return chain
+    
+    ext = get_file_extension(file_path)
+    certs = []
+    
+    # Handle PFX/P12 format
+    if ext in ('.p12', '.pfx'):
+        try:
+            from cryptography.hazmat.primitives.serialization import pkcs12
+            pwd = password.encode() if password else None
+            private_key, cert, additional_certs = pkcs12.load_key_and_certificates(
+                file_data, pwd, default_backend()
+            )
+            if cert:
+                certs.append(cert)
+            if additional_certs:
+                certs.extend(additional_certs)
+        except Exception as e:
+            log.warning('Could not parse PFX for chain: %s', e)
+    
+    # Handle PKCS7/P7B format
+    elif ext in ('.p7b', '.p7c'):
+        try:
+            from cryptography.hazmat.primitives.serialization import pkcs7
+            try:
+                certs = pkcs7.load_pem_pkcs7_certificates(file_data)
+            except Exception:
+                certs = pkcs7.load_der_pkcs7_certificates(file_data)
+        except Exception as e:
+            log.warning('Could not parse P7B for chain: %s', e)
+    
+    # Handle PEM format (may contain multiple certificates)
+    elif ext in ('.pem', '.crt', '.cer', '.cert', '.ca-bundle'):
+        # Try to load multiple PEM certificates
+        try:
+            # Split by PEM markers
+            pem_certs = []
+            current = b''
+            in_cert = False
+            
+            for line in file_data.split(b'\n'):
+                if b'-----BEGIN CERTIFICATE-----' in line:
+                    in_cert = True
+                    current = line + b'\n'
+                elif b'-----END CERTIFICATE-----' in line:
+                    current += line + b'\n'
+                    pem_certs.append(current)
+                    current = b''
+                    in_cert = False
+                elif in_cert:
+                    current += line + b'\n'
+            
+            for pem_data in pem_certs:
+                try:
+                    cert = x509.load_pem_x509_certificate(pem_data, default_backend())
+                    certs.append(cert)
+                except Exception:
+                    pass
+            
+            # If no PEM certs found, try DER
+            if not certs:
+                try:
+                    cert = x509.load_der_x509_certificate(file_data, default_backend())
+                    certs.append(cert)
+                except Exception:
+                    pass
+        except Exception as e:
+            log.warning('Could not parse certificate for chain: %s', e)
+    
+    # Handle DER format
+    elif ext == '.der':
+        try:
+            cert = x509.load_der_x509_certificate(file_data, default_backend())
+            certs.append(cert)
+        except Exception as e:
+            log.warning('Could not parse DER for chain: %s', e)
+    
+    # Extract details for each certificate in chain
+    for cert in certs:
+        try:
+            subject = cert.subject
+            issuer = cert.issuer
+            
+            # Check if self-signed (subject == issuer)
+            is_self_signed = (subject == issuer)
+            
+            # CA check
+            is_ca = False
+            try:
+                basic_constraints = cert.extensions.get_extension_for_oid(
+                    ExtensionOID.BASIC_CONSTRAINTS
+                )
+                is_ca = basic_constraints.value.ca
+            except x509.ExtensionNotFound:
+                pass
+            
+            # Determine type
+            if is_self_signed and is_ca:
+                cert_type = 'Root CA'
+            elif is_ca:
+                cert_type = 'Intermediate CA'
+            else:
+                cert_type = 'End Entity'
+            
+            chain.append({
+                'common_name': _get_name_attr(subject, NameOID.COMMON_NAME) or 'Unknown',
+                'organization': _get_name_attr(subject, NameOID.ORGANIZATION_NAME),
+                'issuer_common_name': _get_name_attr(issuer, NameOID.COMMON_NAME) or 'Unknown',
+                'issuer_organization': _get_name_attr(issuer, NameOID.ORGANIZATION_NAME),
+                'serial_number': format(cert.serial_number, 'X'),
+                'valid_from': cert.not_valid_before_utc.strftime('%Y-%m-%d'),
+                'valid_until': cert.not_valid_after_utc.strftime('%Y-%m-%d'),
+                'is_ca': is_ca,
+                'is_self_signed': is_self_signed,
+                'cert_type': cert_type,
+                'fingerprint_sha256': cert.fingerprint(hashes.SHA256()).hex()[:16] + '...',
+            })
+        except Exception as e:
+            log.warning('Could not extract chain cert details: %s', e)
+    
+    # Sort chain: End Entity first, then Intermediates, then Root
+    def sort_key(c):
+        if c['cert_type'] == 'End Entity':
+            return 0
+        elif c['cert_type'] == 'Intermediate CA':
+            return 1
+        else:  # Root CA
+            return 2
+    
+    chain.sort(key=sort_key)
+    
+    return chain

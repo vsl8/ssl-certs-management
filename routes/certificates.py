@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, jsonif
 from flask_login import login_required
 from werkzeug.utils import secure_filename
 from models import db, Certificate, Setting
-from cert_utils import parse_certificate, is_supported_file, refresh_cert_expiry, SUPPORTED_EXTENSIONS
+from cert_utils import parse_certificate, is_supported_file, refresh_cert_expiry, extract_certificate_chain, SUPPORTED_EXTENSIONS
 from logger import get_logger
 
 log = get_logger('certificates')
@@ -178,7 +178,12 @@ def view_cert(cert_id):
         except (json.JSONDecodeError, TypeError):
             san_list = [cert.san_domains]
 
-    return render_template('certificates/view.html', cert=cert, san_list=san_list)
+    # Extract certificate chain from the file
+    cert_chain = []
+    if cert.file_path and os.path.exists(cert.file_path):
+        cert_chain = extract_certificate_chain(cert.file_path)
+
+    return render_template('certificates/view.html', cert=cert, san_list=san_list, cert_chain=cert_chain)
 
 
 @certificates_bp.route('/edit/<int:cert_id>', methods=['GET', 'POST'])
