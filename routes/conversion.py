@@ -71,6 +71,7 @@ def convert():
     )
 
     if not result['success']:
+        log.warning('Conversion failed: %s -> %s: %s', input_format, output_format, result.get('error', 'Unknown'))
         return jsonify(result), 400
 
     # Save to temp and return download

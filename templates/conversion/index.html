@@ -298,7 +298,7 @@ $('#convertForm').on('submit', function(e) {
             });
         } else {
             return response.json().then(data => {
-                Swal.fire('Conversion Failed', data.message || 'Unknown error', 'error');
+                Swal.fire('Conversion Failed', data.error || data.message || 'Unknown error', 'error');
             });
         }
     })
