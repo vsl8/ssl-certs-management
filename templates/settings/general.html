@@ -56,6 +56,32 @@
                         <small class="text-muted">How often the system checks for expiring certificates and sends alerts</small>
                     </div>
 
+                    <hr>
+
+                    <h6 class="mb-3 text-muted"><i class="bi bi-shield-lock me-1"></i>Security Settings</h6>
+
+                    <!-- Session Lock Timeout -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Session Lock Timeout (minutes)</label>
+                        <input type="number" name="session_lock_timeout" class="form-control"
+                               value="{{ settings.get('session_lock_timeout', {}).value if settings.get('session_lock_timeout') else '5' }}"
+                               min="1" max="60">
+                        <small class="text-muted">Lock the session after this many minutes of inactivity. User must re-enter password to continue.</small>
+                    </div>
+
+                    <!-- Enable Session Lock -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="sessionLockEnabled" name="session_lock_enabled"
+                                   value="true"
+                                   {% if not settings.get('session_lock_enabled') or settings.get('session_lock_enabled').value == 'true' %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="sessionLockEnabled">
+                                Enable Session Lock on Inactivity
+                            </label>
+                        </div>
+                        <small class="text-muted">When enabled, the application will lock and require password re-entry after the timeout period</small>
+                    </div>
+
                     <!-- Auto Refresh Expiry -->
                     <div class="mb-4">
                         <div class="form-check form-switch">
@@ -135,9 +161,12 @@ $('#settingsForm').on('submit', function(e) {
     btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Saving...');
 
     const formData = new FormData(this);
-    // Handle unchecked checkbox
+    // Handle unchecked checkboxes
     if (!$('#autoRefresh').is(':checked')) {
         formData.set('auto_refresh_expiry', 'false');
+    }
+    if (!$('#sessionLockEnabled').is(':checked')) {
+        formData.set('session_lock_enabled', 'false');
     }
 
     fetch('{{ url_for("settings.save_settings") }}', {

@@ -65,6 +65,16 @@ def create_app():
     def inject_config():
         return {'config': app.config}
 
+    # Inject session lock settings into all templates
+    @app.context_processor
+    def inject_session_settings():
+        from models import Setting
+        try:
+            settings = {s.key: s for s in Setting.query.all()}
+            return {'settings': settings}
+        except Exception:
+            return {'settings': {}}
+
     # Setup alert scheduler
     _setup_scheduler(app)
 

@@ -163,6 +163,214 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    <!-- Session Lock Screen Modal -->
+    <div class="modal fade" id="sessionLockModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-shield-lock-fill text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="mb-2">Session Locked</h4>
+                    <p class="text-muted mb-4">Your session has been locked due to inactivity.<br>Enter your password to continue.</p>
+                    
+                    <form id="unlockForm">
+                        <div class="mb-3">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                                <input type="password" class="form-control" id="unlockPassword" 
+                                       placeholder="Enter your password" required autocomplete="current-password">
+                            </div>
+                            <div class="invalid-feedback text-start" id="unlockError"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="unlockBtn">
+                            <i class="bi bi-unlock me-2"></i>Unlock Session
+                        </button>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-person-circle me-1"></i>Logged in as: <strong>{{ current_user.username }}</strong>
+                        </small>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('auth.logout') }}" class="text-danger small">
+                            <i class="bi bi-box-arrow-right me-1"></i>Logout instead
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Lock Overlay -->
+    <div id="sessionLockOverlay" class="d-none"></div>
+
+    <style>
+        #sessionLockOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1050;
+        }
+        #sessionLockModal .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+
+    <!-- Session Lock Script -->
+    <script>
+    (function() {
+        // Session lock configuration from server settings
+        const SESSION_LOCK_ENABLED = {{ 'true' if not settings or settings.get('session_lock_enabled', {}).value != 'false' else 'false' }};
+        const SESSION_LOCK_TIMEOUT = {{ settings.get('session_lock_timeout', {}).value if settings and settings.get('session_lock_timeout') else '5' }} * 60 * 1000; // Convert to milliseconds
+        
+        if (!SESSION_LOCK_ENABLED) return;
+        
+        let lastActivity = Date.now();
+        let isLocked = false;
+        let checkInterval;
+        
+        const lockModal = document.getElementById('sessionLockModal');
+        const lockOverlay = document.getElementById('sessionLockOverlay');
+        const unlockForm = document.getElementById('unlockForm');
+        const unlockPassword = document.getElementById('unlockPassword');
+        const unlockBtn = document.getElementById('unlockBtn');
+        const unlockError = document.getElementById('unlockError');
+        
+        if (!lockModal) return;
+        
+        const bsLockModal = new bootstrap.Modal(lockModal, {
+            backdrop: 'static',
+            keyboard: false
+        });
+        
+        // Track user activity
+        const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+        
+        function updateActivity() {
+            if (!isLocked) {
+                lastActivity = Date.now();
+            }
+        }
+        
+        activityEvents.forEach(event => {
+            document.addEventListener(event, updateActivity, { passive: true });
+        });
+        
+        // Check for inactivity
+        function checkInactivity() {
+            if (isLocked) return;
+            
+            const now = Date.now();
+            const timeSinceActivity = now - lastActivity;
+            
+            if (timeSinceActivity >= SESSION_LOCK_TIMEOUT) {
+                lockSession();
+            }
+        }
+        
+        // Lock the session
+        function lockSession() {
+            if (isLocked) return;
+            isLocked = true;
+            
+            lockOverlay.classList.remove('d-none');
+            bsLockModal.show();
+            unlockPassword.value = '';
+            unlockPassword.classList.remove('is-invalid');
+            unlockError.textContent = '';
+            
+            // Focus password field when modal is shown
+            lockModal.addEventListener('shown.bs.modal', function() {
+                unlockPassword.focus();
+            }, { once: true });
+        }
+        
+        // Unlock the session
+        function unlockSession() {
+            isLocked = false;
+            lastActivity = Date.now();
+            
+            bsLockModal.hide();
+            lockOverlay.classList.add('d-none');
+        }
+        
+        // Handle unlock form submission
+        unlockForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = unlockPassword.value;
+            if (!password) {
+                unlockPassword.classList.add('is-invalid');
+                unlockError.textContent = 'Please enter your password.';
+                return;
+            }
+            
+            unlockBtn.disabled = true;
+            unlockBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+            
+            fetch('{{ url_for("auth.verify_password") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'password=' + encodeURIComponent(password)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    unlockSession();
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Session unlocked!',
+                        showConfirmButton: false,
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                } else {
+                    unlockPassword.classList.add('is-invalid');
+                    unlockError.textContent = data.message || 'Incorrect password.';
+                    unlockPassword.select();
+                }
+            })
+            .catch(error => {
+                console.error('Unlock error:', error);
+                unlockPassword.classList.add('is-invalid');
+                unlockError.textContent = 'An error occurred. Please try again.';
+            })
+            .finally(() => {
+                unlockBtn.disabled = false;
+                unlockBtn.innerHTML = '<i class="bi bi-unlock me-2"></i>Unlock Session';
+            });
+        });
+        
+        // Clear error on input
+        unlockPassword.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+            unlockError.textContent = '';
+        });
+        
+        // Start inactivity check interval (check every 10 seconds)
+        checkInterval = setInterval(checkInactivity, 10000);
+        
+        // Also check on visibility change (when user returns to tab)
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && !isLocked) {
+                checkInactivity();
+            }
+        });
+    })();
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

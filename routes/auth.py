@@ -108,3 +108,17 @@ def profile():
             return jsonify({'success': True, 'message': 'Email updated successfully!'})
 
     return render_template('auth/profile.html')
+
+
+@auth_bp.route('/verify-password', methods=['POST'])
+@login_required
+def verify_password():
+    """Verify current user's password for session unlock."""
+    password = request.form.get('password', '')
+    
+    if current_user.check_password(password):
+        log.info('Session unlocked for user: %s', current_user.username)
+        return jsonify({'success': True, 'message': 'Session unlocked successfully!'})
+    else:
+        log.warning('Failed unlock attempt for user: %s', current_user.username)
+        return jsonify({'success': False, 'message': 'Incorrect password.'}), 401
