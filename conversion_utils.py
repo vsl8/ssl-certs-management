@@ -175,11 +175,11 @@ def _create_jks_keystore(cert, private_key=None, additional_certs=None, password
             NoEncryption()
         )
         
-        # Build certificate chain
-        cert_chain = [(b'X.509', cert_der)]
+        # Build certificate chain - list of DER-encoded certificate bytes
+        cert_chain = [cert_der]
         if additional_certs:
             for c in additional_certs:
-                cert_chain.append((b'X.509', c.public_bytes(Encoding.DER)))
+                cert_chain.append(c.public_bytes(Encoding.DER))
         
         # Create the private key entry
         pke = jks.PrivateKeyEntry.new(alias, cert_chain, key_der, 'rsa_raw')
