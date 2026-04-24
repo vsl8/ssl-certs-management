@@ -165,10 +165,17 @@
                 <h6 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Generated CSRs</h6>
             </div>
             <div class="card-body p-0">
-                <div class="list-group list-group-flush" style="max-height: 300px; overflow-y: auto;">
+                <!-- Search Box -->
+                <div class="p-2 border-bottom">
+                    <input type="text" id="csrSearchInput" class="form-control form-control-sm" 
+                           placeholder="Search CSRs...">
+                </div>
+                <div class="list-group list-group-flush" id="csrListContainer" style="max-height: 300px; overflow-y: auto;">
                     {% if csr_requests %}
                         {% for csr in csr_requests %}
-                        <div class="list-group-item">
+                        <div class="list-group-item csr-item" 
+                             data-name="{{ csr.name|lower }}" 
+                             data-cn="{{ (csr.common_name or '')|lower }}">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div>
                                     <strong>{{ csr.name }}</strong>
@@ -186,6 +193,9 @@
                             </div>
                         </div>
                         {% endfor %}
+                        <div class="list-group-item text-muted text-center d-none" id="noSearchResults">
+                            No matching CSRs found
+                        </div>
                     {% else %}
                         <div class="list-group-item text-muted text-center">
                             No CSRs generated yet
@@ -609,6 +619,33 @@ $('.delete-csr-btn').on('click', function() {
             });
         }
     });
+});
+
+// CSR Search Filter
+$('#csrSearchInput').on('input', function() {
+    const searchTerm = $(this).val().toLowerCase().trim();
+    const csrItems = $('.csr-item');
+    let matchCount = 0;
+    
+    csrItems.each(function() {
+        const name = $(this).data('name') || '';
+        const cn = $(this).data('cn') || '';
+        
+        if (searchTerm === '' || name.includes(searchTerm) || cn.includes(searchTerm)) {
+            $(this).removeClass('d-none');
+            matchCount++;
+        } else {
+            $(this).addClass('d-none');
+        }
+    });
+    
+    // Show/hide "no results" message
+    const noResults = $('#noSearchResults');
+    if (matchCount === 0 && searchTerm !== '') {
+        noResults.removeClass('d-none');
+    } else {
+        noResults.addClass('d-none');
+    }
 });
 </script>
 {% endblock %}
