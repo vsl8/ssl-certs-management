@@ -115,7 +115,7 @@ def backup_certificates():
                     # Use relative path inside zip
                     arcname = os.path.basename(cert.file_path)
                     # Handle duplicates by adding cert ID
-                    if arcname in [n.filename for n in zipf.namelist()]:
+                    if arcname in zipf.namelist():
                         base, ext = os.path.splitext(arcname)
                         arcname = f"{base}_{cert.id}{ext}"
                     
