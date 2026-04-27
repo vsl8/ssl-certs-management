@@ -86,6 +86,13 @@
                         <span>Notification Channels</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'settings.backup' %}active{% endif %}"
+                       href="{{ url_for('settings.backup') }}">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <span>Backup</span>
+                    </a>
+                </li>
 
                 <li class="nav-section-title">ACCOUNT</li>
 

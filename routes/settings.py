@@ -215,3 +215,107 @@ def test_smtp():
         smtp_to_emails=data.get('smtp_to_emails', '')
     )
     return jsonify(result)
+
+
+# ─── Backup Management ───
+
+@settings_bp.route('/backup')
+@login_required
+def backup():
+    """Backup management page."""
+    from backup_utils import list_backups, get_backup_path, get_backup_schedule
+    backups = list_backups()
+    schedule = get_backup_schedule()
+    return render_template('settings/backup.html', backups=backups, schedule=schedule)
+
+
+@settings_bp.route('/backup/schedule', methods=['POST'])
+@login_required
+def save_backup_schedule():
+    """Save backup schedule settings."""
+    data = request.form.to_dict()
+    
+    # Update schedule settings
+    schedule_settings = {
+        'backup_schedule_enabled': data.get('backup_schedule_enabled', 'false'),
+        'backup_schedule_time': data.get('backup_schedule_time', '02:00'),
+        'backup_schedule_type': data.get('backup_schedule_type', 'both'),
+        'backup_schedule_frequency': data.get('backup_schedule_frequency', 'daily'),
+        'backup_schedule_day_of_week': data.get('backup_schedule_day_of_week', '0'),
+        'backup_schedule_day_of_month': data.get('backup_schedule_day_of_month', '1'),
+    }
+    
+    for key, value in schedule_settings.items():
+        setting = Setting.query.filter_by(key=key).first()
+        if setting:
+            setting.value = value
+        else:
+            db.session.add(Setting(key=key, value=value))
+    
+    db.session.commit()
+    
+    log.info('Backup schedule updated: enabled=%s, frequency=%s, time=%s, type=%s', 
+             schedule_settings['backup_schedule_enabled'],
+             schedule_settings['backup_schedule_frequency'],
+             schedule_settings['backup_schedule_time'],
+             schedule_settings['backup_schedule_type'])
+    
+    # Note: The scheduler job will pick up the new settings on the next run,
+    # but if the user wants immediate effect, they need to restart the app.
+    # For production, you could reschedule the job here.
+    
+    return jsonify({
+        'success': True, 
+        'message': 'Backup schedule saved successfully! Changes will take effect after app restart.'
+    })
+
+
+@settings_bp.route('/backup/certs', methods=['POST'])
+@login_required
+def backup_certs():
+    """Create a certificate backup."""
+    from backup_utils import backup_certificates
+    result = backup_certificates()
+    return jsonify(result)
+
+
+@settings_bp.route('/backup/db', methods=['POST'])
+@login_required
+def backup_db():
+    """Create a database backup."""
+    from backup_utils import backup_database
+    result = backup_database()
+    return jsonify(result)
+
+
+@settings_bp.route('/backup/download/<filename>')
+@login_required
+def download_backup(filename):
+    """Download a backup file."""
+    from flask import send_file
+    from backup_utils import get_backup_path
+    import os
+    
+    backup_path = get_backup_path()
+    file_path = os.path.join(backup_path, filename)
+    
+    # Security check
+    if not os.path.abspath(file_path).startswith(os.path.abspath(backup_path)):
+        return jsonify({'success': False, 'message': 'Invalid file path.'}), 400
+    
+    if not os.path.exists(file_path):
+        return jsonify({'success': False, 'message': 'Backup file not found.'}), 404
+    
+    if not (filename.startswith('certs_backup_') or filename.startswith('db_backup_')):
+        return jsonify({'success': False, 'message': 'Invalid backup file.'}), 400
+    
+    return send_file(file_path, as_attachment=True, download_name=filename)
+
+
+@settings_bp.route('/backup/delete/<filename>', methods=['POST'])
+@login_required
+def delete_backup(filename):
+    """Delete a backup file."""
+    from backup_utils import delete_backup as delete_backup_file
+    result = delete_backup_file(filename)
+    return jsonify(result)

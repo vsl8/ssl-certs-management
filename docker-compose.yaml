@@ -26,6 +26,8 @@ services:
       - /etc/pki/tls/certs:/etc/pki/tls/certs
       - /etc/pki/tls/private:/etc/pki/tls/private
       - /etc/pki/tls/csr_2026:/etc/pki/tls/csr_2026
+      # Backup storage
+      - /etc/pki/tls/backup:/etc/pki/tls/backup
       # Log files persistence
       - certmanager_logs:/app/logs
     healthcheck:

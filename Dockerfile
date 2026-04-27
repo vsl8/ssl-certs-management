@@ -21,7 +21,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # Create directories for mounts
-RUN mkdir -p /app/instance /app/logs /etc/pki/tls/certs /etc/pki/tls/private /etc/pki/tls/csr_2026
+RUN mkdir -p /app/instance /app/logs /etc/pki/tls/certs /etc/pki/tls/private /etc/pki/tls/csr_2026 /etc/pki/tls/backup
 
 # Copy dependency files first for better caching
 COPY pyproject.toml uv.lock* ./

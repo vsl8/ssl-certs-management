@@ -121,6 +121,18 @@
 
                     <hr>
 
+                    <h6 class="mb-3 text-muted"><i class="bi bi-cloud-arrow-up me-1"></i>Backup Configuration</h6>
+
+                    <!-- Backup Path -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Backup Storage Path</label>
+                        <input type="text" name="backup_path" class="form-control"
+                               value="{{ settings.get('backup_path', {}).value if settings.get('backup_path') else '/etc/pki/tls/backup' }}">
+                        <small class="text-muted">Directory where certificate and database backups are stored. Only the last 5 backups are retained.</small>
+                    </div>
+
+                    <hr>
+
                     <h6 class="mb-3 text-muted">Database Configuration</h6>
                     <div class="card bg-light mb-4">
                         <div class="card-body">

@@ -120,6 +120,7 @@ The default `docker-compose.yaml` includes:
   - `certmanager_data` → `/app/instance` (SQLite database)
   - `certmanager_logs` → `/app/logs` (Log files)
   - `/etc/pki/tls/certs` → Certificate storage
+  - `/etc/pki/tls/backup` → Backup storage
 - Health checks
 - Optional MariaDB service (uncomment to use)
 
@@ -145,13 +146,14 @@ ssl-cert-project/
 ├── models.py              # SQLAlchemy database models
 ├── cert_utils.py          # Certificate parsing utilities
 ├── conversion_utils.py    # Format conversion functions
+├── backup_utils.py        # Backup and restore utilities
 ├── notifications.py       # Alert notification system
 ├── logger.py              # Logging configuration
 ├── routes/
 │   ├── auth.py            # Authentication routes
 │   ├── dashboard.py       # Dashboard routes
 │   ├── certificates.py    # Certificate CRUD routes
-│   ├── settings.py        # Settings and alerts routes
+│   ├── settings.py        # Settings, alerts, and backup routes
 │   └── conversion.py      # Conversion routes
 ├── templates/             # Jinja2 HTML templates
 ├── static/                # CSS, JS, images
@@ -193,6 +195,35 @@ Navigate to **Conversion** to convert certificates between formats:
 - PFX/P12 → PEM, CRT, DER, KEY (extract private key)
 - P7B → PEM, CRT, DER
 - KEY → PEM, DER
+
+### Backup & Restore
+
+The application provides built-in backup functionality for certificates and database.
+
+**Creating Backups:**
+
+1. Go to **Settings → Backup**
+2. Click **Backup Certificates** to create a ZIP archive of all certificate files
+3. Click **Backup Database** to export the database in SQL format (MySQL/MariaDB compatible)
+
+**Backup Features:**
+
+| Feature | Description |
+|---------|-------------|
+| **Certificate Backup** | ZIP file containing all certificate files with a manifest |
+| **Database Backup** | SQL file compatible with MySQL/MariaDB for easy import |
+| **Auto-Retention** | Only the last 5 backups per type are kept; older ones are automatically deleted |
+| **Timestamped Files** | Backup filenames include date/time (e.g., `certs_backup_2026-04-27_14-30-00.zip`) |
+| **Download/Delete** | Download or delete individual backups from the UI |
+
+**Backup Location:** `/etc/pki/tls/backup` (configurable)
+
+**Restoring Database:**
+
+To restore a database backup to MySQL/MariaDB:
+```bash
+mysql -u username -p database_name < db_backup_YYYY-MM-DD_HH-MM-SS.sql
+```
 
 ### Notification Channels
 

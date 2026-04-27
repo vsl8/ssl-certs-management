@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Backup Management - SSL Cert Manager{% endblock %}
+{% block page_title %}Backup Management{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Backup Actions -->
+    <div class="col-xl-4">
+        <div class="card admin-card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-cloud-arrow-up me-2"></i>Create Backup</h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">
+                    Create backups of your certificates and database. Only the last {{ backups.max_backups }} backups are retained.
+                </p>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary" id="backupCertsBtn">
+                        <i class="bi bi-file-earmark-zip me-2"></i>Backup Certificates
+                    </button>
+                    <button class="btn btn-success" id="backupDbBtn">
+                        <i class="bi bi-database me-2"></i>Backup Database
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <div class="small">
+                    <p class="mb-1"><strong>Backup Location:</strong></p>
+                    <code>{{ backups.backup_path }}</code>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scheduled Backup -->
+        <div class="card admin-card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Scheduled Backup</h6>
+            </div>
+            <div class="card-body">
+                <form id="scheduleForm">
+                    <!-- Enable Schedule -->
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="scheduleEnabled" 
+                                   name="backup_schedule_enabled" value="true"
+                                   {% if schedule.enabled %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="scheduleEnabled">
+                                Enable Scheduled Backups
+                            </label>
+                        </div>
+                        <small class="text-muted">Automatically run backups at the configured schedule</small>
+                    </div>
+                    
+                    <!-- Backup Frequency -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Backup Frequency</label>
+                        <select name="backup_schedule_frequency" class="form-select" id="scheduleFrequency">
+                            <option value="daily" {% if schedule.frequency == 'daily' %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if schedule.frequency == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="monthly" {% if schedule.frequency == 'monthly' %}selected{% endif %}>Monthly</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Day of Week (for weekly) -->
+                    <div class="mb-3" id="dayOfWeekGroup" style="display: {% if schedule.frequency == 'weekly' %}block{% else %}none{% endif %};">
+                        <label class="form-label fw-semibold">Day of Week</label>
+                        <select name="backup_schedule_day_of_week" class="form-select" id="scheduleDayOfWeek">
+                            <option value="0" {% if schedule.day_of_week == 0 %}selected{% endif %}>Monday</option>
+                            <option value="1" {% if schedule.day_of_week == 1 %}selected{% endif %}>Tuesday</option>
+                            <option value="2" {% if schedule.day_of_week == 2 %}selected{% endif %}>Wednesday</option>
+                            <option value="3" {% if schedule.day_of_week == 3 %}selected{% endif %}>Thursday</option>
+                            <option value="4" {% if schedule.day_of_week == 4 %}selected{% endif %}>Friday</option>
+                            <option value="5" {% if schedule.day_of_week == 5 %}selected{% endif %}>Saturday</option>
+                            <option value="6" {% if schedule.day_of_week == 6 %}selected{% endif %}>Sunday</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Day of Month (for monthly) -->
+                    <div class="mb-3" id="dayOfMonthGroup" style="display: {% if schedule.frequency == 'monthly' %}block{% else %}none{% endif %};">
+                        <label class="form-label fw-semibold">Day of Month</label>
+                        <select name="backup_schedule_day_of_month" class="form-select" id="scheduleDayOfMonth">
+                            {% for day in range(1, 29) %}
+                            <option value="{{ day }}" {% if schedule.day_of_month == day %}selected{% endif %}>{{ day }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Days 1-28 supported for all months</small>
+                    </div>
+                    
+                    <!-- Backup Time -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Backup Time</label>
+                        <input type="time" name="backup_schedule_time" class="form-control" 
+                               value="{{ schedule.time }}" id="scheduleTime">
+                        <small class="text-muted">Time to run backup (24-hour format)</small>
+                    </div>
+                    
+                    <!-- Backup Type -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Backup Type</label>
+                        <select name="backup_schedule_type" class="form-select" id="scheduleType">
+                            <option value="both" {% if schedule.type == 'both' %}selected{% endif %}>Both (Certificates & Database)</option>
+                            <option value="certs" {% if schedule.type == 'certs' %}selected{% endif %}>Certificates Only</option>
+                            <option value="db" {% if schedule.type == 'db' %}selected{% endif %}>Database Only</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-secondary w-100" id="saveScheduleBtn">
+                        <i class="bi bi-save me-2"></i>Save Schedule
+                    </button>
+                </form>
+                
+                {% if schedule.enabled %}
+                <div class="alert alert-info mt-3 mb-0 small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Next backup: 
+                    {% if schedule.frequency == 'daily' %}
+                        Daily at <strong>{{ schedule.time }}</strong>
+                    {% elif schedule.frequency == 'weekly' %}
+                        Weekly on <strong>{{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][schedule.day_of_week] }}</strong> at <strong>{{ schedule.time }}</strong>
+                    {% elif schedule.frequency == 'monthly' %}
+                        Monthly on day <strong>{{ schedule.day_of_month }}</strong> at <strong>{{ schedule.time }}</strong>
+                    {% endif %}
+                    ({{ 'Both' if schedule.type == 'both' else 'Certificates' if schedule.type == 'certs' else 'Database' }})
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Backup Info -->
+        <div class="card admin-card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Backup Information</h6>
+            </div>
+            <div class="card-body small">
+                <ul class="mb-0">
+                    <li><strong>Certificate Backup:</strong> ZIP file containing all certificate files with a manifest</li>
+                    <li class="mt-2"><strong>Database Backup:</strong> SQL file compatible with MySQL/MariaDB for easy import</li>
+                    <li class="mt-2"><strong>Retention:</strong> Maximum {{ backups.max_backups }} backups per type, oldest are automatically deleted</li>
+                    <li class="mt-2"><strong>Naming:</strong> Files include timestamp for easy identification</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Backup Lists -->
+    <div class="col-xl-8">
+        <!-- Certificate Backups -->
+        <div class="card admin-card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-file-earmark-zip me-2"></i>Certificate Backups</h6>
+                <span class="badge bg-primary">{{ backups.cert_backups|length }} / {{ backups.max_backups }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if backups.cert_backups %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Size</th>
+                                <th>Created</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for backup in backups.cert_backups %}
+                            <tr>
+                                <td>
+                                    <i class="bi bi-file-earmark-zip text-primary me-2"></i>
+                                    {{ backup.filename }}
+                                </td>
+                                <td>{{ backup.size_human }}</td>
+                                <td>{{ backup.created }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('settings.download_backup', filename=backup.filename) }}" 
+                                           class="btn btn-outline-primary" title="Download">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger delete-backup-btn" 
+                                                data-filename="{{ backup.filename }}" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-file-earmark-zip fs-1 mb-2 d-block opacity-50"></i>
+                    <p class="mb-0">No certificate backups yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Database Backups -->
+        <div class="card admin-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-database me-2"></i>Database Backups</h6>
+                <span class="badge bg-success">{{ backups.db_backups|length }} / {{ backups.max_backups }}</span>
+            </div>
+            <div class="card-body p-0">
+                {% if backups.db_backups %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Size</th>
+                                <th>Created</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for backup in backups.db_backups %}
+                            <tr>
+                                <td>
+                                    <i class="bi bi-file-earmark-code text-success me-2"></i>
+                                    {{ backup.filename }}
+                                </td>
+                                <td>{{ backup.size_human }}</td>
+                                <td>{{ backup.created }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('settings.download_backup', filename=backup.filename) }}" 
+                                           class="btn btn-outline-success" title="Download">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger delete-backup-btn" 
+                                                data-filename="{{ backup.filename }}" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-database fs-1 mb-2 d-block opacity-50"></i>
+                    <p class="mb-0">No database backups yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Backup Certificates
+$('#backupCertsBtn').on('click', function() {
+    const btn = $(this);
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Creating backup...');
+    
+    $.post('{{ url_for("settings.backup_certs") }}')
+        .done(function(res) {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Backup Created!',
+                    html: `<p>${res.message}</p><p><small class="text-muted">File: ${res.filename}</small></p>`,
+                    showConfirmButton: true
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        })
+        .fail(function() {
+            Swal.fire('Error', 'Failed to create backup.', 'error');
+        })
+        .always(function() {
+            btn.prop('disabled', false).html('<i class="bi bi-file-earmark-zip me-2"></i>Backup Certificates');
+        });
+});
+
+// Backup Database
+$('#backupDbBtn').on('click', function() {
+    const btn = $(this);
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Creating backup...');
+    
+    $.post('{{ url_for("settings.backup_db") }}')
+        .done(function(res) {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Backup Created!',
+                    html: `<p>${res.message}</p><p><small class="text-muted">File: ${res.filename}</small></p>`,
+                    showConfirmButton: true
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        })
+        .fail(function() {
+            Swal.fire('Error', 'Failed to create backup.', 'error');
+        })
+        .always(function() {
+            btn.prop('disabled', false).html('<i class="bi bi-database me-2"></i>Backup Database');
+        });
+});
+
+// Delete Backup
+$('.delete-backup-btn').on('click', function() {
+    const filename = $(this).data('filename');
+    
+    Swal.fire({
+        title: 'Delete Backup?',
+        html: `Are you sure you want to delete <strong>${filename}</strong>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.post(`{{ url_for("settings.backup") }}/delete/${filename}`)
+                .done(function(res) {
+                    if (res.success) {
+                        Swal.fire('Deleted!', res.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('Error', res.message, 'error');
+                    }
+                })
+                .fail(function() {
+                    Swal.fire('Error', 'Failed to delete backup.', 'error');
+                });
+        }
+    });
+});
+
+// Save Schedule
+$('#scheduleForm').on('submit', function(e) {
+    e.preventDefault();
+    const btn = $('#saveScheduleBtn');
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Saving...');
+    
+    const formData = new FormData(this);
+    // Handle unchecked checkbox
+    if (!$('#scheduleEnabled').is(':checked')) {
+        formData.set('backup_schedule_enabled', 'false');
+    }
+    
+    $.ajax({
+        url: '{{ url_for("settings.save_backup_schedule") }}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false
+    })
+        .done(function(res) {
+            if (res.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Schedule Saved!',
+                    text: res.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => location.reload());
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        })
+        .fail(function() {
+            Swal.fire('Error', 'Failed to save schedule.', 'error');
+        })
+        .always(function() {
+            btn.prop('disabled', false).html('<i class="bi bi-save me-2"></i>Save Schedule');
+        });
+});
+
+// Show/hide day selection based on frequency
+$('#scheduleFrequency').on('change', function() {
+    const freq = $(this).val();
+    $('#dayOfWeekGroup').toggle(freq === 'weekly');
+    $('#dayOfMonthGroup').toggle(freq === 'monthly');
+});
+</script>
+{% endblock %}

@@ -84,8 +84,9 @@ def create_app():
 
 
 def _setup_scheduler(app):
-    """Setup background scheduler for certificate alert checks."""
+    """Setup background scheduler for certificate alert checks and scheduled backups."""
     from notifications import check_and_send_alerts
+    from backup_utils import run_scheduled_backup, get_backup_schedule
 
     scheduler = BackgroundScheduler(daemon=True)
 
@@ -98,6 +99,32 @@ def _setup_scheduler(app):
         id='cert_alert_check',
         replace_existing=True,
     )
+    
+    # Scheduled backup job - runs at configured frequency
+    with app.app_context():
+        schedule = get_backup_schedule()
+        
+        # Build cron trigger kwargs based on frequency
+        cron_kwargs = {
+            'hour': schedule['hour'],
+            'minute': schedule['minute'],
+        }
+        
+        if schedule['frequency'] == 'weekly':
+            # day_of_week: 0=Monday, 6=Sunday (APScheduler uses mon-sun or 0-6)
+            cron_kwargs['day_of_week'] = schedule['day_of_week']
+        elif schedule['frequency'] == 'monthly':
+            cron_kwargs['day'] = schedule['day_of_month']
+        # For 'daily', no additional kwargs needed (runs every day)
+        
+        scheduler.add_job(
+            func=run_scheduled_backup,
+            trigger='cron',
+            args=[app],
+            id='scheduled_backup',
+            replace_existing=True,
+            **cron_kwargs
+        )
     scheduler.start()
 
     # Register shutdown

@@ -260,6 +260,13 @@ def _seed_defaults():
         'log_level': ('INFO', 'Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)'),
         'csr_storage_path': (f'/etc/pki/tls/csr_{current_year}', 'CSR and config files storage path'),
         'csr_default_key_path': ('/etc/pki/tls/private', 'Default path for private keys used in CSR generation'),
+        'backup_path': ('/etc/pki/tls/backup', 'Backup storage path for certificates and database exports'),
+        'backup_schedule_enabled': ('false', 'Enable scheduled automatic backups'),
+        'backup_schedule_time': ('02:00', 'Time to run scheduled backups (HH:MM format, 24-hour)'),
+        'backup_schedule_type': ('both', 'What to backup: certs, db, or both'),
+        'backup_schedule_frequency': ('daily', 'Backup frequency: daily, weekly, or monthly'),
+        'backup_schedule_day_of_week': ('0', 'Day of week for weekly backups (0=Monday, 6=Sunday)'),
+        'backup_schedule_day_of_month': ('1', 'Day of month for monthly backups (1-28)'),
     }
     for key, (value, desc) in defaults.items():
         if not Setting.query.filter_by(key=key).first():
