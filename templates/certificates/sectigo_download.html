@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Download from Sectigo - SSL Cert Manager{% endblock %}
+{% block page_title %}Download Certificate from Sectigo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <!-- Step 1: Enter SSL ID -->
+        <div class="card admin-card mb-4" id="step1Card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <span class="badge bg-primary me-2">Step 1</span>
+                    <i class="bi bi-key me-2"></i>Enter SSL ID
+                </h6>
+            </div>
+            <div class="card-body">
+                <form id="fetchCertForm">
+                    <div class="row align-items-end">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Sectigo SSL ID <span class="text-danger">*</span></label>
+                            <input type="text" name="ssl_id" id="sslId" class="form-control form-control-lg"
+                                   placeholder="Enter the SSL ID from Sectigo (e.g., 123456789)" required>
+                            <small class="text-muted">The SSL ID can be found in your Sectigo/InCommon certificate manager</small>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="fetchBtn">
+                                <i class="bi bi-cloud-download me-2"></i>Fetch Certificates
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Step 2: Certificate Preview (Hidden initially) -->
+        <div class="card admin-card mb-4 d-none" id="step2Card">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0">
+                    <span class="badge bg-light text-success me-2">Step 2</span>
+                    <i class="bi bi-check-circle me-2"></i>Certificates Downloaded Successfully
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Download Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-lock2 fs-2 text-primary"></i>
+                                <h6 class="mt-2 mb-1">Server Certificate</h6>
+                                <span class="badge bg-success" id="serverCertStatus">Downloaded</span>
+                                <p class="small text-muted mb-0 mt-1" id="serverCertSize">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-diagram-3 fs-2 text-info"></i>
+                                <h6 class="mt-2 mb-1">Intermediate Certificate</h6>
+                                <span class="badge bg-success" id="intermediateCertStatus">Downloaded</span>
+                                <p class="small text-muted mb-0 mt-1" id="intermediateCertSize">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <i class="bi bi-file-earmark-zip fs-2 text-success"></i>
+                                <h6 class="mt-2 mb-1">Combined Certificate</h6>
+                                <span class="badge bg-primary" id="combinedCertStatus">Ready</span>
+                                <p class="small text-muted mb-0 mt-1" id="combinedCertSize">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DNS SANs -->
+                <div class="mb-4" id="dnsSansSection">
+                    <h6 class="fw-semibold"><i class="bi bi-globe me-2"></i>DNS Subject Alternative Names (SANs)</h6>
+                    <div id="dnsSansList" class="d-flex flex-wrap gap-2 mt-2">
+                        <!-- DNS SANs will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Warnings if any -->
+                <div class="alert alert-warning d-none" id="warningsAlert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <span id="warningsText"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Save Certificate (Hidden initially) -->
+        <div class="card admin-card d-none" id="step3Card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <span class="badge bg-primary me-2">Step 3</span>
+                    <i class="bi bi-save me-2"></i>Save Combined Certificate
+                </h6>
+            </div>
+            <div class="card-body">
+                <form id="saveCertForm">
+                    <!-- Filename -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Output Filename <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" name="filename" id="outputFilename" class="form-control"
+                                   placeholder="e.g., myserver_2024" required>
+                            <span class="input-group-text">.pem</span>
+                        </div>
+                        <small class="text-muted">The combined certificate will be saved with this name</small>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Notes</label>
+                        <textarea name="notes" id="certNotes" class="form-control" rows="3"
+                                  placeholder="Any notes about this certificate..."></textarea>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Tags</label>
+                        <input type="text" name="tags" id="certTags" class="form-control"
+                               placeholder="e.g., production, web-server, sectigo (comma-separated)">
+                    </div>
+
+                    <!-- Options -->
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="addToSystem" name="add_to_system" value="true" checked>
+                            <label class="form-check-label" for="addToSystem">
+                                <strong>Add certificate to system</strong>
+                                <small class="text-muted d-block">Save and register the certificate in CertManager for tracking</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success btn-lg" id="saveBtn">
+                            <i class="bi bi-check-lg me-1"></i> Save & Add to System
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="resetBtn">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Start Over
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 id="loadingText">Downloading certificates from Sectigo...</h5>
+                <p class="text-muted mb-0">Please wait, this may take a moment.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const fetchForm = $('#fetchCertForm');
+    const saveForm = $('#saveCertForm');
+    const loadingModal = new bootstrap.Modal($('#loadingModal')[0]);
+
+    // Step 1: Fetch certificates
+    fetchForm.on('submit', function(e) {
+        e.preventDefault();
+
+        const sslId = $('#sslId').val().trim();
+        if (!sslId) {
+            Swal.fire('Error', 'Please enter an SSL ID', 'error');
+            return;
+        }
+
+        // Show loading
+        $('#loadingText').text('Downloading certificates from Sectigo...');
+        loadingModal.show();
+
+        $.ajax({
+            url: '{{ url_for("certificates.sectigo_fetch_certs") }}',
+            method: 'POST',
+            data: { ssl_id: sslId },
+            success: function(response) {
+                loadingModal.hide();
+
+                if (response.success) {
+                    // Show step 2 and 3
+                    $('#step2Card, #step3Card').removeClass('d-none');
+                    $('#step1Card').addClass('border-success');
+
+                    // Update sizes
+                    $('#serverCertSize').text(formatBytes(response.server_cert_size));
+                    $('#intermediateCertSize').text(formatBytes(response.intermediate_cert_size));
+                    $('#combinedCertSize').text(formatBytes(response.combined_size));
+
+                    // Show DNS SANs
+                    const dnsSansList = $('#dnsSansList');
+                    dnsSansList.empty();
+                    if (response.dns_sans && response.dns_sans.length > 0) {
+                        response.dns_sans.forEach(function(san) {
+                            dnsSansList.append(`<span class="badge bg-info text-dark fs-6">${san}</span>`);
+                        });
+                        $('#dnsSansSection').show();
+
+                        // Suggest filename from first SAN
+                        const suggestedName = response.dns_sans[0].replace(/\./g, '_').replace(/\*/g, 'wildcard');
+                        $('#outputFilename').val(suggestedName);
+                    } else {
+                        $('#dnsSansSection').hide();
+                    }
+
+                    // Show warnings if any
+                    if (response.warnings && response.warnings.length > 0) {
+                        $('#warningsText').text(response.warnings.join('; '));
+                        $('#warningsAlert').removeClass('d-none');
+                    } else {
+                        $('#warningsAlert').addClass('d-none');
+                    }
+
+                    // Scroll to step 2
+                    $('html, body').animate({
+                        scrollTop: $('#step2Card').offset().top - 100
+                    }, 500);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Certificates Downloaded!',
+                        text: 'Now enter a filename and save the combined certificate.',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                loadingModal.hide();
+                const msg = xhr.responseJSON?.message || 'Failed to download certificates';
+                Swal.fire('Error', msg, 'error');
+            }
+        });
+    });
+
+    // Step 3: Save certificate
+    saveForm.on('submit', function(e) {
+        e.preventDefault();
+
+        const filename = $('#outputFilename').val().trim();
+        if (!filename) {
+            Swal.fire('Error', 'Please enter a filename', 'error');
+            return;
+        }
+
+        // Show loading
+        $('#loadingText').text('Saving certificate...');
+        loadingModal.show();
+
+        $.ajax({
+            url: '{{ url_for("certificates.sectigo_save_cert") }}',
+            method: 'POST',
+            data: {
+                filename: filename,
+                notes: $('#certNotes').val(),
+                tags: $('#certTags').val(),
+                add_to_system: $('#addToSystem').is(':checked') ? 'true' : 'false'
+            },
+            success: function(response) {
+                loadingModal.hide();
+
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Certificate Saved!',
+                        html: `
+                            <p>Certificate "<strong>${response.filename}</strong>" has been saved successfully.</p>
+                            ${response.cert_id ? '<p class="text-muted">The certificate has been added to your system.</p>' : ''}
+                        `,
+                        showCancelButton: response.cert_id ? true : false,
+                        confirmButtonText: response.cert_id ? 'View Certificate' : 'OK',
+                        cancelButtonText: 'Download Another'
+                    }).then((result) => {
+                        if (result.isConfirmed && response.cert_id) {
+                            window.location.href = '/certificates/view/' + response.cert_id;
+                        } else {
+                            resetForm();
+                        }
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                loadingModal.hide();
+                const msg = xhr.responseJSON?.message || 'Failed to save certificate';
+                Swal.fire('Error', msg, 'error');
+            }
+        });
+    });
+
+    // Reset button
+    $('#resetBtn').on('click', function() {
+        resetForm();
+    });
+
+    // Toggle add to system checkbox label
+    $('#addToSystem').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#saveBtn').html('<i class="bi bi-check-lg me-1"></i> Save & Add to System');
+        } else {
+            $('#saveBtn').html('<i class="bi bi-download me-1"></i> Download Only');
+        }
+    });
+
+    function resetForm() {
+        // Reset forms
+        fetchForm[0].reset();
+        saveForm[0].reset();
+
+        // Hide steps 2 and 3
+        $('#step2Card, #step3Card').addClass('d-none');
+        $('#step1Card').removeClass('border-success');
+
+        // Reset checkbox
+        $('#addToSystem').prop('checked', true).trigger('change');
+
+        // Scroll to top
+        $('html, body').animate({ scrollTop: 0 }, 300);
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+});
+</script>
+{% endblock %}

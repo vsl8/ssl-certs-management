@@ -62,6 +62,13 @@
                         <span>CSR Generation</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'certificates.sectigo_download' %}active{% endif %}"
+                       href="{{ url_for('certificates.sectigo_download') }}">
+                        <i class="bi bi-cloud-download"></i>
+                        <span>Download Cert</span>
+                    </a>
+                </li>
 
                 <li class="nav-section-title">SETTINGS</li>
 

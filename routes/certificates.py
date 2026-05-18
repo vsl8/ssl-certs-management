@@ -253,3 +253,228 @@ def download_cert(cert_id):
         as_attachment=True,
         download_name=cert.filename
     )
+
+
+# =============================================================================
+# Sectigo Certificate Download Routes
+# =============================================================================
+
+@certificates_bp.route('/sectigo-download', methods=['GET'])
+@login_required
+def sectigo_download():
+    """Sectigo certificate download page."""
+    return render_template('certificates/sectigo_download.html')
+
+
+@certificates_bp.route('/sectigo-download/fetch', methods=['POST'])
+@login_required
+def sectigo_fetch_certs():
+    """
+    Fetch certificates from Sectigo using SSL ID.
+    Returns the downloaded certificates for preview.
+    """
+    from sectigo_utils import (
+        download_and_combine_certificates,
+        extract_dns_sans,
+        validate_ssl_id,
+        SectigoDownloadError
+    )
+
+    ssl_id = request.form.get('ssl_id', '').strip()
+
+    if not ssl_id:
+        return jsonify({'success': False, 'message': 'SSL ID is required'}), 400
+
+    if not validate_ssl_id(ssl_id):
+        return jsonify({'success': False, 'message': 'Invalid SSL ID format. Must be numeric.'}), 400
+
+    try:
+        combined, server_cert, intermediate_cert, errors = download_and_combine_certificates(ssl_id)
+
+        if not combined:
+            error_msg = '; '.join(errors) if errors else 'Failed to download certificates'
+            return jsonify({'success': False, 'message': error_msg}), 400
+
+        # Extract DNS SANs from server certificate
+        dns_sans = []
+        if server_cert:
+            dns_sans = extract_dns_sans(server_cert)
+
+        # Store in session for later use
+        from flask import session
+        import base64
+        session['sectigo_combined_cert'] = base64.b64encode(combined).decode('utf-8')
+        session['sectigo_ssl_id'] = ssl_id
+        session['sectigo_dns_sans'] = dns_sans
+
+        log.info('Sectigo certificates fetched: ssl_id=%s, dns_sans=%s', ssl_id, dns_sans)
+
+        return jsonify({
+            'success': True,
+            'message': 'Certificates downloaded successfully!',
+            'dns_sans': dns_sans,
+            'server_cert_size': len(server_cert) if server_cert else 0,
+            'intermediate_cert_size': len(intermediate_cert) if intermediate_cert else 0,
+            'combined_size': len(combined),
+            'warnings': errors if errors else []
+        })
+
+    except SectigoDownloadError as e:
+        log.error('Sectigo download error: %s', str(e))
+        return jsonify({'success': False, 'message': str(e)}), 400
+    except Exception as e:
+        log.error('Unexpected error in sectigo_fetch_certs: %s', str(e))
+        return jsonify({'success': False, 'message': f'Unexpected error: {str(e)}'}), 500
+
+
+@certificates_bp.route('/sectigo-download/save', methods=['POST'])
+@login_required
+def sectigo_save_cert():
+    """
+    Save the combined certificate to the system and optionally download it.
+    """
+    from flask import session, send_file
+    import base64
+    import io
+
+    # Get the combined cert from session
+    combined_cert_b64 = session.get('sectigo_combined_cert')
+    ssl_id = session.get('sectigo_ssl_id')
+    dns_sans = session.get('sectigo_dns_sans', [])
+
+    if not combined_cert_b64:
+        return jsonify({
+            'success': False,
+            'message': 'No certificate data found. Please fetch certificates first.'
+        }), 400
+
+    combined_cert = base64.b64decode(combined_cert_b64)
+
+    # Get the filename from form
+    output_filename = request.form.get('filename', '').strip()
+    if not output_filename:
+        return jsonify({'success': False, 'message': 'Filename is required'}), 400
+
+    # Ensure .pem extension
+    if not output_filename.lower().endswith('.pem'):
+        output_filename += '.pem'
+
+    filename = secure_filename(output_filename)
+    notes = request.form.get('notes', '')
+    tags = request.form.get('tags', '')
+    add_to_system = request.form.get('add_to_system', 'true').lower() == 'true'
+
+    # Parse the certificate for metadata
+    details = parse_certificate(combined_cert, filename)
+
+    if not details.get('success'):
+        return jsonify({
+            'success': False,
+            'message': f"Failed to parse certificate: {details.get('error', 'Unknown error')}"
+        }), 400
+
+    cert_id = None
+
+    if add_to_system:
+        # Get storage path from settings
+        storage_path_setting = Setting.query.filter_by(key='cert_storage_path').first()
+        storage_path = storage_path_setting.value if storage_path_setting else current_app.config.get('DEFAULT_CERT_PATH', '/etc/pki/tls/certs')
+
+        # Save file to storage path
+        upload_dir = current_app.config['UPLOAD_FOLDER']
+        os.makedirs(upload_dir, exist_ok=True)
+
+        # Use upload dir as fallback if storage path doesn't exist
+        save_dir = storage_path if os.path.isdir(storage_path) else upload_dir
+        file_path = os.path.join(save_dir, filename)
+
+        # Avoid overwriting
+        base, ext = os.path.splitext(filename)
+        counter = 1
+        while os.path.exists(file_path):
+            filename = f"{base}_{counter}{ext}"
+            file_path = os.path.join(save_dir, filename)
+            counter += 1
+
+        with open(file_path, 'wb') as f:
+            f.write(combined_cert)
+
+        # Add Sectigo SSL ID to notes
+        sectigo_note = f"Downloaded from Sectigo (SSL ID: {ssl_id})"
+        if notes:
+            notes = f"{sectigo_note}\n{notes}"
+        else:
+            notes = sectigo_note
+
+        # Create DB record
+        cert = Certificate(
+            filename=filename,
+            file_type=details['file_type'],
+            file_path=file_path,
+            file_size=details.get('file_size', len(combined_cert)),
+            common_name=details.get('common_name'),
+            organization=details.get('organization'),
+            organizational_unit=details.get('organizational_unit'),
+            country=details.get('country'),
+            state=details.get('state'),
+            locality=details.get('locality'),
+            email=details.get('email'),
+            issuer_common_name=details.get('issuer_common_name'),
+            issuer_organization=details.get('issuer_organization'),
+            issuer_country=details.get('issuer_country'),
+            valid_from=details.get('valid_from'),
+            valid_until=details.get('valid_until'),
+            serial_number=details.get('serial_number'),
+            signature_algorithm=details.get('signature_algorithm'),
+            key_size=details.get('key_size'),
+            version=details.get('version'),
+            is_ca=details.get('is_ca', False),
+            fingerprint_sha256=details.get('fingerprint_sha256'),
+            fingerprint_sha1=details.get('fingerprint_sha1'),
+            san_domains=details.get('san_domains'),
+            days_until_expiry=details.get('days_until_expiry'),
+            is_expired=details.get('is_expired', False),
+            notes=notes,
+            tags=tags,
+        )
+        db.session.add(cert)
+        db.session.commit()
+
+        cert_id = cert.id
+        log.info('Sectigo certificate added to system: id=%s name=%s ssl_id=%s',
+                 cert.id, cert.common_name, ssl_id)
+
+    # Clear session data
+    session.pop('sectigo_combined_cert', None)
+    session.pop('sectigo_ssl_id', None)
+    session.pop('sectigo_dns_sans', None)
+
+    return jsonify({
+        'success': True,
+        'message': f'Certificate "{filename}" saved successfully!',
+        'cert_id': cert_id,
+        'filename': filename,
+        'download_url': url_for('certificates.sectigo_download_file', filename=filename) if not add_to_system else None
+    })
+
+
+@certificates_bp.route('/sectigo-download/file/<filename>')
+@login_required
+def sectigo_download_file(filename):
+    """Download the combined certificate file."""
+    from flask import send_file, session
+    import base64
+    import io
+
+    combined_cert_b64 = session.get('sectigo_combined_cert')
+    if not combined_cert_b64:
+        return jsonify({'success': False, 'message': 'No certificate data found'}), 404
+
+    combined_cert = base64.b64decode(combined_cert_b64)
+
+    return send_file(
+        io.BytesIO(combined_cert),
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/x-pem-file'
+    )
