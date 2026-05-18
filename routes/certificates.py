@@ -259,6 +259,27 @@ def download_cert(cert_id):
 # Sectigo Certificate Download Routes
 # =============================================================================
 
+# Temp directory for Sectigo downloads
+SECTIGO_TEMP_DIR = '/tmp/sectigo_certs'
+
+
+def _get_sectigo_temp_path(session_id: str) -> str:
+    """Get temp file path for a session."""
+    os.makedirs(SECTIGO_TEMP_DIR, exist_ok=True)
+    return os.path.join(SECTIGO_TEMP_DIR, f'sectigo_{session_id}.pem')
+
+
+def _cleanup_sectigo_temp(session_id: str):
+    """Clean up temp file for a session."""
+    temp_path = _get_sectigo_temp_path(session_id)
+    try:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            log.debug('Cleaned up temp file: %s', temp_path)
+    except OSError as e:
+        log.warning('Failed to cleanup temp file %s: %s', temp_path, e)
+
+
 @certificates_bp.route('/sectigo-download', methods=['GET'])
 @login_required
 def sectigo_download():
@@ -279,6 +300,8 @@ def sectigo_fetch_certs():
         validate_ssl_id,
         SectigoDownloadError
     )
+    from flask import session
+    import uuid
 
     ssl_id = request.form.get('ssl_id', '').strip()
 
@@ -300,14 +323,26 @@ def sectigo_fetch_certs():
         if server_cert:
             dns_sans = extract_dns_sans(server_cert)
 
-        # Store in session for later use
-        from flask import session
-        import base64
-        session['sectigo_combined_cert'] = base64.b64encode(combined).decode('utf-8')
+        # Generate unique session ID for temp file
+        sectigo_session_id = str(uuid.uuid4())
+
+        # Clean up any previous temp file
+        old_session_id = session.get('sectigo_session_id')
+        if old_session_id:
+            _cleanup_sectigo_temp(old_session_id)
+
+        # Save combined cert to temp file instead of session
+        temp_path = _get_sectigo_temp_path(sectigo_session_id)
+        with open(temp_path, 'wb') as f:
+            f.write(combined)
+
+        # Store only metadata in session (small data)
+        session['sectigo_session_id'] = sectigo_session_id
         session['sectigo_ssl_id'] = ssl_id
         session['sectigo_dns_sans'] = dns_sans
 
-        log.info('Sectigo certificates fetched: ssl_id=%s, dns_sans=%s', ssl_id, dns_sans)
+        log.info('Sectigo certificates fetched: ssl_id=%s, dns_sans=%s, temp_file=%s',
+                 ssl_id, dns_sans, temp_path)
 
         return jsonify({
             'success': True,
@@ -334,21 +369,29 @@ def sectigo_save_cert():
     Save the combined certificate to the system and optionally download it.
     """
     from flask import session, send_file
-    import base64
     import io
 
-    # Get the combined cert from session
-    combined_cert_b64 = session.get('sectigo_combined_cert')
+    # Get session data
+    sectigo_session_id = session.get('sectigo_session_id')
     ssl_id = session.get('sectigo_ssl_id')
     dns_sans = session.get('sectigo_dns_sans', [])
 
-    if not combined_cert_b64:
+    if not sectigo_session_id:
         return jsonify({
             'success': False,
             'message': 'No certificate data found. Please fetch certificates first.'
         }), 400
 
-    combined_cert = base64.b64decode(combined_cert_b64)
+    # Read combined cert from temp file
+    temp_path = _get_sectigo_temp_path(sectigo_session_id)
+    if not os.path.exists(temp_path):
+        return jsonify({
+            'success': False,
+            'message': 'Certificate data expired. Please fetch certificates again.'
+        }), 400
+
+    with open(temp_path, 'rb') as f:
+        combined_cert = f.read()
 
     # Get the filename from form
     output_filename = request.form.get('filename', '').strip()
@@ -444,8 +487,11 @@ def sectigo_save_cert():
         log.info('Sectigo certificate added to system: id=%s name=%s ssl_id=%s',
                  cert.id, cert.common_name, ssl_id)
 
+    # Clean up temp file
+    _cleanup_sectigo_temp(sectigo_session_id)
+
     # Clear session data
-    session.pop('sectigo_combined_cert', None)
+    session.pop('sectigo_session_id', None)
     session.pop('sectigo_ssl_id', None)
     session.pop('sectigo_dns_sans', None)
 
@@ -463,14 +509,18 @@ def sectigo_save_cert():
 def sectigo_download_file(filename):
     """Download the combined certificate file."""
     from flask import send_file, session
-    import base64
     import io
 
-    combined_cert_b64 = session.get('sectigo_combined_cert')
-    if not combined_cert_b64:
+    sectigo_session_id = session.get('sectigo_session_id')
+    if not sectigo_session_id:
         return jsonify({'success': False, 'message': 'No certificate data found'}), 404
 
-    combined_cert = base64.b64decode(combined_cert_b64)
+    temp_path = _get_sectigo_temp_path(sectigo_session_id)
+    if not os.path.exists(temp_path):
+        return jsonify({'success': False, 'message': 'Certificate data expired'}), 404
+
+    with open(temp_path, 'rb') as f:
+        combined_cert = f.read()
 
     return send_file(
         io.BytesIO(combined_cert),
