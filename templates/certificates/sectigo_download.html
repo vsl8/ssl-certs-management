@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block title %}Download from Sectigo - SSL Cert Manager{% endblock %}
-{% block page_title %}Download Certificate from Sectigo{% endblock %}
+{% block title %}Download Certificate - SSL Cert Manager{% endblock %}
+{% block page_title %}Download Certificate{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -16,19 +16,15 @@
             </div>
             <div class="card-body">
                 <form id="fetchCertForm">
-                    <div class="row align-items-end">
-                        <div class="col-md-8">
-                            <label class="form-label fw-semibold">Sectigo SSL ID <span class="text-danger">*</span></label>
-                            <input type="text" name="ssl_id" id="sslId" class="form-control form-control-lg"
-                                   placeholder="Enter the SSL ID from Sectigo (e.g., 123456789)" required>
-                            <small class="text-muted">The SSL ID can be found in your Sectigo/InCommon certificate manager</small>
-                        </div>
-                        <div class="col-md-4">
-                            <button type="submit" class="btn btn-primary btn-lg w-100" id="fetchBtn">
-                                <i class="bi bi-cloud-download me-2"></i>Fetch Certificates
-                            </button>
-                        </div>
+                    <label class="form-label fw-semibold">SSL ID <span class="text-danger">*</span></label>
+                    <div class="input-group" style="max-width: 500px;">
+                        <input type="text" name="ssl_id" id="sslId" class="form-control"
+                               placeholder="e.g., 123456789" required>
+                        <button type="submit" class="btn btn-primary" id="fetchBtn">
+                            <i class="bi bi-cloud-download me-1"></i> Fetch
+                        </button>
                     </div>
+                    <small class="text-muted">The SSL ID can be found in your certificate manager</small>
                 </form>
             </div>
         </div>
