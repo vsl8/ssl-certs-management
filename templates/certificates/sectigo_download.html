@@ -40,7 +40,7 @@
             <div class="card-body">
                 <!-- Download Summary -->
                 <div class="row mb-4">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <i class="bi bi-file-earmark-lock2 fs-2 text-primary"></i>
@@ -50,7 +50,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <i class="bi bi-diagram-3 fs-2 text-info"></i>
@@ -60,13 +60,23 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <div class="card bg-light">
                             <div class="card-body text-center">
                                 <i class="bi bi-file-earmark-zip fs-2 text-success"></i>
                                 <h6 class="mt-2 mb-1">Combined Certificate</h6>
                                 <span class="badge bg-primary" id="combinedCertStatus">Ready</span>
                                 <p class="small text-muted mb-0 mt-1" id="combinedCertSize">-</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light border-warning">
+                            <div class="card-body text-center">
+                                <i class="bi bi-key-fill fs-2 text-warning"></i>
+                                <h6 class="mt-2 mb-1">Private Key</h6>
+                                <span class="badge bg-warning text-dark" id="privateKeyStatus">Add in Step 3</span>
+                                <p class="small text-muted mb-0 mt-1">Optional</p>
                             </div>
                         </div>
                     </div>
@@ -107,6 +117,30 @@
                             <span class="input-group-text">.pem</span>
                         </div>
                         <small class="text-muted">The combined certificate will be saved with this name</small>
+                    </div>
+
+                    <!-- Private Key File -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-key-fill text-warning me-1"></i>Private Key File
+                            <span class="badge bg-secondary ms-1">Optional</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-file-lock"></i></span>
+                            <input type="text" name="private_key_path" id="privateKeyPath" class="form-control"
+                                   value="/etc/pki/tls/private/wildcard.dfci.harvard.edu.key"
+                                   placeholder="e.g., /etc/pki/tls/private/myserver.key">
+                        </div>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Path to the private key file generated when you created the CSR. 
+                            If provided, the private key will be included in the combined PEM file.
+                        </small>
+                        <div class="alert alert-info mt-2 mb-0 py-2 small d-none" id="privateKeyInfo">
+                            <i class="bi bi-lightbulb me-1"></i>
+                            <strong>Tip:</strong> The private key is typically stored in <code>/etc/pki/tls/private/</code> 
+                            or the location you specified during CSR generation.
+                        </div>
                     </div>
 
                     <!-- Notes -->
@@ -272,17 +306,26 @@ $(document).ready(function() {
                 filename: filename,
                 notes: $('#certNotes').val(),
                 tags: $('#certTags').val(),
-                add_to_system: $('#addToSystem').is(':checked') ? 'true' : 'false'
+                add_to_system: $('#addToSystem').is(':checked') ? 'true' : 'false',
+                private_key_path: $('#privateKeyPath').val().trim()
             },
             success: function(response) {
                 loadingModal.hide();
 
                 if (response.success) {
+                    let privateKeyMsg = '';
+                    if (response.private_key_included) {
+                        privateKeyMsg = '<p class="text-success"><i class="bi bi-key-fill me-1"></i>Private key has been included in the PEM file.</p>';
+                    } else if ($('#privateKeyPath').val().trim() === '') {
+                        privateKeyMsg = '<p class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>No private key was included. You may need to add it separately.</p>';
+                    }
+                    
                     Swal.fire({
                         icon: 'success',
                         title: 'Certificate Saved!',
                         html: `
                             <p>Certificate "<strong>${response.filename}</strong>" has been saved successfully.</p>
+                            ${privateKeyMsg}
                             ${response.cert_id ? '<p class="text-muted">The certificate has been added to your system.</p>' : ''}
                         `,
                         showCancelButton: response.cert_id ? true : false,
@@ -333,9 +376,20 @@ $(document).ready(function() {
         // Reset checkbox
         $('#addToSystem').prop('checked', true).trigger('change');
 
+        // Restore default private key path
+        $('#privateKeyPath').val('/etc/pki/tls/private/wildcard.dfci.harvard.edu.key');
+
+        // Hide private key tip
+        $('#privateKeyInfo').addClass('d-none');
+
         // Scroll to top
         $('html, body').animate({ scrollTop: 0 }, 300);
     }
+
+    // Show private key tip on focus
+    $('#privateKeyPath').on('focus', function() {
+        $('#privateKeyInfo').removeClass('d-none');
+    });
 
     function formatBytes(bytes) {
         if (bytes === 0) return '0 Bytes';

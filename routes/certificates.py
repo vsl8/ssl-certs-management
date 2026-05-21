@@ -393,6 +393,47 @@ def sectigo_save_cert():
     with open(temp_path, 'rb') as f:
         combined_cert = f.read()
 
+    # Get the private key path (optional)
+    private_key_path = request.form.get('private_key_path', '').strip()
+    private_key_included = False
+    
+    # Include private key if path is provided
+    if private_key_path:
+        if os.path.exists(private_key_path):
+            try:
+                with open(private_key_path, 'rb') as f:
+                    private_key_data = f.read()
+                
+                # Validate it looks like a private key
+                key_str = private_key_data.decode('utf-8', errors='ignore')
+                if 'PRIVATE KEY' in key_str:
+                    # Append private key to combined cert
+                    if not combined_cert.endswith(b'\n'):
+                        combined_cert += b'\n'
+                    combined_cert += private_key_data
+                    if not private_key_data.endswith(b'\n'):
+                        combined_cert += b'\n'
+                    private_key_included = True
+                    log.info('Private key included from: %s', private_key_path)
+                else:
+                    log.warning('File does not appear to be a private key: %s', private_key_path)
+                    return jsonify({
+                        'success': False,
+                        'message': f'The specified file does not appear to be a valid private key: {private_key_path}'
+                    }), 400
+            except Exception as e:
+                log.error('Failed to read private key from %s: %s', private_key_path, str(e))
+                return jsonify({
+                    'success': False,
+                    'message': f'Failed to read private key file: {str(e)}'
+                }), 400
+        else:
+            log.warning('Private key file not found: %s', private_key_path)
+            return jsonify({
+                'success': False,
+                'message': f'Private key file not found: {private_key_path}'
+            }), 400
+
     # Get the filename from form
     output_filename = request.form.get('filename', '').strip()
     if not output_filename:
@@ -444,6 +485,8 @@ def sectigo_save_cert():
 
         # Add Sectigo SSL ID to notes
         sectigo_note = f"Downloaded from Sectigo (SSL ID: {ssl_id})"
+        if private_key_included:
+            sectigo_note += "\nPrivate key included in PEM file"
         if notes:
             notes = f"{sectigo_note}\n{notes}"
         else:
@@ -495,11 +538,17 @@ def sectigo_save_cert():
     session.pop('sectigo_ssl_id', None)
     session.pop('sectigo_dns_sans', None)
 
+    # Build success message
+    success_msg = f'Certificate "{filename}" saved successfully!'
+    if private_key_included:
+        success_msg += ' Private key included.'
+
     return jsonify({
         'success': True,
-        'message': f'Certificate "{filename}" saved successfully!',
+        'message': success_msg,
         'cert_id': cert_id,
         'filename': filename,
+        'private_key_included': private_key_included,
         'download_url': url_for('certificates.sectigo_download_file', filename=filename) if not add_to_system else None
     })
 
