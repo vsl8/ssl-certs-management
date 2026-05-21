@@ -485,8 +485,6 @@ def sectigo_save_cert():
 
         # Add Sectigo SSL ID to notes
         sectigo_note = f"Downloaded from Sectigo (SSL ID: {ssl_id})"
-        if private_key_included:
-            sectigo_note += "\nPrivate key included in PEM file"
         if notes:
             notes = f"{sectigo_note}\n{notes}"
         else:
