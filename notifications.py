@@ -30,79 +30,99 @@ def check_and_send_alerts(app):
         # Auto-resolve alerts for certificates that are no longer expiring
         _auto_resolve_alerts()
 
-        # Get enabled alert rules
+        # Get enabled alert rules, sorted by threshold (smallest first)
         rules = AlertRule.query.filter_by(is_enabled=True).order_by(
-            AlertRule.days_before_expiry.desc()
+            AlertRule.days_before_expiry.asc()
         ).all()
 
-        for rule in rules:
-            # Find certificates that match this rule's threshold
-            expiring = Certificate.query.filter(
-                Certificate.days_until_expiry <= rule.days_before_expiry,
-                Certificate.days_until_expiry > 0,
-                Certificate.valid_until.isnot(None),
-            ).all()
+        if not rules:
+            logger.info("No enabled alert rules found")
+            return
 
-            for cert in expiring:
-                # Get or create alert instance
-                instance = AlertInstance.query.filter_by(
+        # Process certificates that are expiring
+        expiring_certs = Certificate.query.filter(
+            Certificate.days_until_expiry.isnot(None),
+            Certificate.days_until_expiry > 0,
+            Certificate.valid_until.isnot(None),
+        ).all()
+
+        for cert in expiring_certs:
+            # Find the most appropriate (smallest matching) rule for this certificate
+            # A cert expiring in 4 days should only trigger the 7-day rule, not 30, 15, etc.
+            applicable_rule = None
+            for rule in rules:
+                if cert.days_until_expiry <= rule.days_before_expiry:
+                    applicable_rule = rule
+                    break  # Use the first (smallest) matching threshold
+            
+            if not applicable_rule:
+                # Certificate doesn't match any rule threshold
+                # Resolve any existing alerts for this cert
+                _resolve_all_cert_alerts(cert.id)
+                continue
+
+            # Get or create alert instance for the applicable rule ONLY
+            instance = AlertInstance.query.filter_by(
+                certificate_id=cert.id,
+                alert_rule_id=applicable_rule.id,
+            ).filter(
+                AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+            ).first()
+
+            if not instance:
+                # Create new alert instance
+                instance = AlertInstance(
                     certificate_id=cert.id,
-                    alert_rule_id=rule.id,
-                ).filter(
-                    AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
-                ).first()
-
-                if not instance:
-                    # Create new alert instance
-                    instance = AlertInstance(
-                        certificate_id=cert.id,
-                        alert_rule_id=rule.id,
-                        state='firing',
-                    )
-                    db.session.add(instance)
-                    db.session.commit()
-                    logger.info(f"New alert instance created for cert {cert.id} rule {rule.id}")
-
-                # Skip paused alerts
-                if instance.state == 'paused':
-                    logger.debug(f"Skipping paused alert for cert {cert.id} rule {rule.id}")
-                    continue
-
-                # Skip acknowledged alerts (don't send again today)
-                if instance.state == 'acknowledged':
-                    logger.debug(f"Skipping acknowledged alert for cert {cert.id} rule {rule.id}")
-                    continue
-
-                # Check if we already sent an alert for this cert + rule today
-                today_start = datetime.now(timezone.utc).replace(
-                    hour=0, minute=0, second=0, microsecond=0
+                    alert_rule_id=applicable_rule.id,
+                    state='firing',
                 )
-                existing_log = AlertLog.query.filter(
-                    AlertLog.certificate_id == cert.id,
-                    AlertLog.alert_rule_id == rule.id,
-                    AlertLog.sent_at >= today_start,
-                ).first()
-
-                if existing_log:
-                    continue
-
-                # Update instance last fired time
-                instance.last_fired_at = datetime.now(timezone.utc)
+                db.session.add(instance)
                 db.session.commit()
+                logger.info(f"New alert instance created for cert {cert.id} ('{cert.common_name or cert.filename}') with rule {applicable_rule.id} ({applicable_rule.days_before_expiry} days)")
 
-                # Send to the rule's channel, or all default channels
-                channels = []
-                if rule.notification_channel_id:
-                    ch = NotificationChannel.query.get(rule.notification_channel_id)
-                    if ch and ch.is_enabled:
-                        channels.append(ch)
-                else:
-                    channels = NotificationChannel.query.filter_by(
-                        is_enabled=True, is_default=True
-                    ).all()
+            # Resolve any OTHER alert instances for this cert with different rules
+            _resolve_other_cert_alerts(cert.id, applicable_rule.id)
 
-                for channel in channels:
-                    _send_notification(cert, rule, channel)
+            # Skip paused alerts
+            if instance.state == 'paused':
+                logger.debug(f"Skipping paused alert for cert {cert.id} rule {applicable_rule.id}")
+                continue
+
+            # Skip acknowledged alerts (don't send again today)
+            if instance.state == 'acknowledged':
+                logger.debug(f"Skipping acknowledged alert for cert {cert.id} rule {applicable_rule.id}")
+                continue
+
+            # Check if we already sent an alert for this cert + rule today
+            today_start = datetime.now(timezone.utc).replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
+            existing_log = AlertLog.query.filter(
+                AlertLog.certificate_id == cert.id,
+                AlertLog.alert_rule_id == applicable_rule.id,
+                AlertLog.sent_at >= today_start,
+            ).first()
+
+            if existing_log:
+                continue
+
+            # Update instance last fired time
+            instance.last_fired_at = datetime.now(timezone.utc)
+            db.session.commit()
+
+            # Send to the rule's channel, or all default channels
+            channels = []
+            if applicable_rule.notification_channel_id:
+                ch = NotificationChannel.query.get(applicable_rule.notification_channel_id)
+                if ch and ch.is_enabled:
+                    channels.append(ch)
+            else:
+                channels = NotificationChannel.query.filter_by(
+                    is_enabled=True, is_default=True
+                ).all()
+
+            for channel in channels:
+                _send_notification(cert, applicable_rule, channel)
 
 
 def _auto_resolve_alerts():
@@ -126,6 +146,45 @@ def _auto_resolve_alerts():
             logger.info(f"Auto-resolved alert for cert {cert.id} rule {rule.id}")
 
     db.session.commit()
+
+
+def _resolve_other_cert_alerts(cert_id, current_rule_id):
+    """
+    Resolve all alert instances for a certificate except the current applicable rule.
+    This ensures only one alert (the most appropriate threshold) is active per certificate.
+    """
+    other_instances = AlertInstance.query.filter(
+        AlertInstance.certificate_id == cert_id,
+        AlertInstance.alert_rule_id != current_rule_id,
+        AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+    ).all()
+
+    for instance in other_instances:
+        instance.state = 'resolved'
+        instance.resolved_at = datetime.now(timezone.utc)
+        logger.info(f"Auto-resolved alert instance {instance.id} for cert {cert_id} rule {instance.alert_rule_id} (superseded by rule {current_rule_id})")
+
+    if other_instances:
+        db.session.commit()
+
+
+def _resolve_all_cert_alerts(cert_id):
+    """
+    Resolve all alert instances for a certificate.
+    Used when a certificate no longer matches any rule threshold.
+    """
+    instances = AlertInstance.query.filter(
+        AlertInstance.certificate_id == cert_id,
+        AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+    ).all()
+
+    for instance in instances:
+        instance.state = 'resolved'
+        instance.resolved_at = datetime.now(timezone.utc)
+        logger.info(f"Auto-resolved alert instance {instance.id} for cert {cert_id} (no longer matches any threshold)")
+
+    if instances:
+        db.session.commit()
 
 
 def _send_notification(cert, rule, channel):

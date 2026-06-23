@@ -253,10 +253,15 @@
                     <li><strong>Days Before Expiry:</strong> The system checks if a certificate expires within this many days</li>
                     <li><strong>Channel:</strong> Where to send the notification (email, Slack, Teams, webhook)</li>
                     <li><strong>Default Channels:</strong> If no specific channel is assigned, alerts go to all default channels</li>
+                    <li><strong>Smart Threshold Matching:</strong> Only the <u>smallest matching threshold</u> applies to each certificate</li>
                 </ul>
-                <div class="alert alert-info mb-0">
+                <div class="alert alert-info mb-3">
                     <i class="bi bi-lightbulb me-1"></i>
-                    Alerts are sent once per day per certificate per rule to avoid spam.
+                    <strong>Example:</strong> If a certificate expires in 4 days, only the 7-day rule will trigger (not 15-day or 30-day rules).
+                </div>
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-bell me-1"></i>
+                    Alerts are sent once per day per certificate to avoid spam.
                 </div>
             </div>
         </div>
