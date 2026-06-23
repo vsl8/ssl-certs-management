@@ -179,6 +179,48 @@ class AlertLog(db.Model):
         return f'<AlertLog cert={self.certificate_id} status={self.status}>'
 
 
+class AlertInstance(db.Model):
+    """
+    Tracks active/firing alerts for certificates.
+    Allows pausing/resuming alerts for specific certificate+rule combinations.
+    """
+    __tablename__ = 'alert_instances'
+
+    id = db.Column(db.Integer, primary_key=True)
+    certificate_id = db.Column(db.Integer, db.ForeignKey('certificates.id'), nullable=False)
+    alert_rule_id = db.Column(db.Integer, db.ForeignKey('alert_rules.id'), nullable=False)
+    
+    # Alert state: firing, paused, resolved, acknowledged
+    state = db.Column(db.String(20), default='firing', nullable=False)
+    
+    # Timestamps
+    first_fired_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    last_fired_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    paused_at = db.Column(db.DateTime, nullable=True)
+    resumed_at = db.Column(db.DateTime, nullable=True)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+    acknowledged_at = db.Column(db.DateTime, nullable=True)
+    
+    # User actions
+    paused_by = db.Column(db.String(80), nullable=True)  # username who paused
+    acknowledged_by = db.Column(db.String(80), nullable=True)  # username who acknowledged
+    
+    # Notes
+    notes = db.Column(db.Text, nullable=True)
+    
+    # Relationships
+    certificate = db.relationship('Certificate', backref='alert_instances', foreign_keys=[certificate_id])
+    alert_rule = db.relationship('AlertRule', backref='alert_instances', foreign_keys=[alert_rule_id])
+    
+    # Unique constraint: one active alert per cert+rule combination
+    __table_args__ = (
+        db.Index('idx_cert_rule_state', 'certificate_id', 'alert_rule_id', 'state'),
+    )
+
+    def __repr__(self):
+        return f'<AlertInstance cert={self.certificate_id} rule={self.alert_rule_id} state={self.state}>'
+
+
 class Setting(db.Model):
     __tablename__ = 'settings'
 

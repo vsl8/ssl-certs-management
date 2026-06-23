@@ -1,10 +1,11 @@
 """Settings, Alert Rules, and Notification Channel routes."""
 
 from flask import Blueprint, render_template, request, jsonify
-from flask_login import login_required
-from models import db, Setting, AlertRule, NotificationChannel
+from flask_login import login_required, current_user
+from models import db, Setting, AlertRule, AlertInstance, NotificationChannel
 from notifications import send_test_notification
 from logger import get_logger, reconfigure_logging
+from datetime import datetime, timezone
 
 log = get_logger('settings')
 settings_bp = Blueprint('settings', __name__, url_prefix='/settings')
@@ -56,7 +57,13 @@ def alerts():
     """Alert rules configuration page."""
     rules = AlertRule.query.order_by(AlertRule.days_before_expiry.desc()).all()
     channels = NotificationChannel.query.filter_by(is_enabled=True).all()
-    return render_template('settings/alerts.html', rules=rules, channels=channels)
+    
+    # Get firing alerts
+    firing_alerts = AlertInstance.query.filter(
+        AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+    ).order_by(AlertInstance.last_fired_at.desc()).all()
+    
+    return render_template('settings/alerts.html', rules=rules, channels=channels, firing_alerts=firing_alerts)
 
 
 @settings_bp.route('/alerts/save', methods=['POST'])
@@ -113,6 +120,105 @@ def toggle_alert(rule_id):
         'message': f'Alert rule {"enabled" if rule.is_enabled else "disabled"} successfully!',
         'is_enabled': rule.is_enabled,
     })
+
+
+# ─── Alert Instance Management ───
+
+@settings_bp.route('/alerts/instance/<int:instance_id>/pause', methods=['POST'])
+@login_required
+def pause_alert_instance(instance_id):
+    """Pause a firing alert instance."""
+    instance = AlertInstance.query.get_or_404(instance_id)
+    
+    if instance.state != 'firing':
+        return jsonify({'success': False, 'message': 'Only firing alerts can be paused.'}), 400
+    
+    instance.state = 'paused'
+    instance.paused_at = datetime.now(timezone.utc)
+    instance.paused_by = current_user.username
+    
+    notes = request.form.get('notes', '').strip()
+    if notes:
+        instance.notes = notes
+    
+    db.session.commit()
+    log.info(f'Alert instance {instance_id} paused by {current_user.username}')
+    
+    return jsonify({'success': True, 'message': 'Alert paused successfully!'})
+
+
+@settings_bp.route('/alerts/instance/<int:instance_id>/resume', methods=['POST'])
+@login_required
+def resume_alert_instance(instance_id):
+    """Resume a paused alert instance."""
+    instance = AlertInstance.query.get_or_404(instance_id)
+    
+    if instance.state != 'paused':
+        return jsonify({'success': False, 'message': 'Only paused alerts can be resumed.'}), 400
+    
+    instance.state = 'firing'
+    instance.resumed_at = datetime.now(timezone.utc)
+    db.session.commit()
+    log.info(f'Alert instance {instance_id} resumed by {current_user.username}')
+    
+    return jsonify({'success': True, 'message': 'Alert resumed successfully!'})
+
+
+@settings_bp.route('/alerts/instance/<int:instance_id>/acknowledge', methods=['POST'])
+@login_required
+def acknowledge_alert_instance(instance_id):
+    """Acknowledge an alert instance (won't send notifications today)."""
+    instance = AlertInstance.query.get_or_404(instance_id)
+    
+    if instance.state not in ['firing', 'acknowledged']:
+        return jsonify({'success': False, 'message': 'Only firing alerts can be acknowledged.'}), 400
+    
+    instance.state = 'acknowledged'
+    instance.acknowledged_at = datetime.now(timezone.utc)
+    instance.acknowledged_by = current_user.username
+    
+    notes = request.form.get('notes', '').strip()
+    if notes:
+        instance.notes = notes
+    
+    db.session.commit()
+    log.info(f'Alert instance {instance_id} acknowledged by {current_user.username}')
+    
+    return jsonify({'success': True, 'message': 'Alert acknowledged successfully!'})
+
+
+@settings_bp.route('/alerts/instance/<int:instance_id>/resolve', methods=['POST'])
+@login_required
+def resolve_alert_instance(instance_id):
+    """Manually resolve an alert instance."""
+    instance = AlertInstance.query.get_or_404(instance_id)
+    
+    if instance.state == 'resolved':
+        return jsonify({'success': False, 'message': 'Alert is already resolved.'}), 400
+    
+    instance.state = 'resolved'
+    instance.resolved_at = datetime.now(timezone.utc)
+    
+    notes = request.form.get('notes', '').strip()
+    if notes:
+        instance.notes = notes
+    
+    db.session.commit()
+    log.info(f'Alert instance {instance_id} manually resolved by {current_user.username}')
+    
+    return jsonify({'success': True, 'message': 'Alert resolved successfully!'})
+
+
+@settings_bp.route('/alerts/instance/<int:instance_id>/delete', methods=['POST'])
+@login_required
+def delete_alert_instance(instance_id):
+    """Delete an alert instance."""
+    instance = AlertInstance.query.get_or_404(instance_id)
+    db.session.delete(instance)
+    db.session.commit()
+    log.info(f'Alert instance {instance_id} deleted by {current_user.username}')
+    
+    return jsonify({'success': True, 'message': 'Alert instance deleted successfully!'})
 
 
 # ─── Notification Channels ───

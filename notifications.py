@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 import requests
 
-from models import db, Certificate, AlertRule, AlertLog, NotificationChannel, Setting
+from models import db, Certificate, AlertRule, AlertLog, AlertInstance, NotificationChannel, Setting
 from cert_utils import refresh_cert_expiry
 from logger import get_logger
 
@@ -27,6 +27,9 @@ def check_and_send_alerts(app):
             refresh_cert_expiry(cert)
         db.session.commit()
 
+        # Auto-resolve alerts for certificates that are no longer expiring
+        _auto_resolve_alerts()
+
         # Get enabled alert rules
         rules = AlertRule.query.filter_by(is_enabled=True).order_by(
             AlertRule.days_before_expiry.desc()
@@ -41,18 +44,51 @@ def check_and_send_alerts(app):
             ).all()
 
             for cert in expiring:
+                # Get or create alert instance
+                instance = AlertInstance.query.filter_by(
+                    certificate_id=cert.id,
+                    alert_rule_id=rule.id,
+                ).filter(
+                    AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+                ).first()
+
+                if not instance:
+                    # Create new alert instance
+                    instance = AlertInstance(
+                        certificate_id=cert.id,
+                        alert_rule_id=rule.id,
+                        state='firing',
+                    )
+                    db.session.add(instance)
+                    db.session.commit()
+                    logger.info(f"New alert instance created for cert {cert.id} rule {rule.id}")
+
+                # Skip paused alerts
+                if instance.state == 'paused':
+                    logger.debug(f"Skipping paused alert for cert {cert.id} rule {rule.id}")
+                    continue
+
+                # Skip acknowledged alerts (don't send again today)
+                if instance.state == 'acknowledged':
+                    logger.debug(f"Skipping acknowledged alert for cert {cert.id} rule {rule.id}")
+                    continue
+
                 # Check if we already sent an alert for this cert + rule today
                 today_start = datetime.now(timezone.utc).replace(
                     hour=0, minute=0, second=0, microsecond=0
                 )
-                existing = AlertLog.query.filter(
+                existing_log = AlertLog.query.filter(
                     AlertLog.certificate_id == cert.id,
                     AlertLog.alert_rule_id == rule.id,
                     AlertLog.sent_at >= today_start,
                 ).first()
 
-                if existing:
+                if existing_log:
                     continue
+
+                # Update instance last fired time
+                instance.last_fired_at = datetime.now(timezone.utc)
+                db.session.commit()
 
                 # Send to the rule's channel, or all default channels
                 channels = []
@@ -67,6 +103,29 @@ def check_and_send_alerts(app):
 
                 for channel in channels:
                     _send_notification(cert, rule, channel)
+
+
+def _auto_resolve_alerts():
+    """Automatically resolve alerts for certificates that are no longer expiring or have been renewed."""
+    # Find firing/paused alerts
+    active_instances = AlertInstance.query.filter(
+        AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+    ).all()
+
+    for instance in active_instances:
+        cert = instance.certificate
+        rule = instance.alert_rule
+
+        # Resolve if certificate is now valid beyond the alert threshold
+        if not cert or not cert.valid_until:
+            continue
+
+        if cert.days_until_expiry is None or cert.days_until_expiry > rule.days_before_expiry:
+            instance.state = 'resolved'
+            instance.resolved_at = datetime.now(timezone.utc)
+            logger.info(f"Auto-resolved alert for cert {cert.id} rule {rule.id}")
+
+    db.session.commit()
 
 
 def _send_notification(cert, rule, channel):

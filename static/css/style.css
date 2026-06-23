@@ -404,3 +404,68 @@ body {
 .card.h-100:hover {
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+
+/* ─── Alert Instance Table ─── */
+.alert-instance-row[data-state="firing"] {
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+.alert-instance-row[data-state="paused"] {
+    background-color: rgba(108, 117, 125, 0.05);
+}
+
+.alert-instance-row[data-state="acknowledged"] {
+    background-color: rgba(23, 162, 184, 0.05);
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Sticky table header */
+.table thead.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table thead.sticky-top th {
+    border-top: none;
+}
+
+/* Alert instance actions */
+.btn-group-sm .btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.5rem;
+}
+
+/* Ensure table cells don't wrap */
+.table th, .table td {
+    white-space: nowrap;
+}
+
+/* Allow text truncation in specific columns */
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -27,6 +27,7 @@ build/
 instance/
 logs/
 uploads/
+test_certs/
 
 # Misc
 *.log
