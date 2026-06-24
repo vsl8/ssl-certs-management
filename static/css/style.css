@@ -469,3 +469,55 @@ body {
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* ─── CSR List Container ─── */
+.csr-list-container {
+    max-height: calc(100vh - 350px);
+    min-height: 400px;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+/* CSR list scrollbar styling */
+.csr-list-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.csr-list-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.csr-list-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.csr-list-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Config templates list styling */
+.config-list-container {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.config-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.config-list-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.config-list-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.config-list-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
