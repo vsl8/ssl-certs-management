@@ -33,6 +33,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Copy application code
 COPY . .
 
+# Copy and set entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Install the project itself
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
@@ -44,6 +48,9 @@ ENV FLASK_APP=app.py \
 
 # Expose port
 EXPOSE 5000
+
+# Set entrypoint
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Run with gunicorn for production
 CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app:create_app()"]
