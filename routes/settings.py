@@ -221,6 +221,22 @@ def delete_alert_instance(instance_id):
     return jsonify({'success': True, 'message': 'Alert instance deleted successfully!'})
 
 
+@settings_bp.route('/alerts/cleanup-duplicates', methods=['POST'])
+@login_required
+def cleanup_duplicate_alerts_route():
+    """Manually trigger cleanup of duplicate alert instances."""
+    from notifications import cleanup_duplicate_alerts
+    
+    try:
+        cleanup_duplicate_alerts()
+        log.info(f'Duplicate alerts cleanup triggered by {current_user.username}')
+        return jsonify({'success': True, 'message': 'Duplicate alerts cleaned up successfully!'})
+    except Exception as e:
+        log.error(f'Failed to cleanup duplicate alerts: {e}')
+        return jsonify({'success': False, 'message': f'Cleanup failed: {str(e)}'}), 500
+
+
+
 # ─── Notification Channels ───
 
 @settings_bp.route('/notifications')

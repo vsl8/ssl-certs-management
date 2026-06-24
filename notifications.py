@@ -27,6 +27,9 @@ def check_and_send_alerts(app):
             refresh_cert_expiry(cert)
         db.session.commit()
 
+        # Clean up any duplicate alert instances FIRST (before sending notifications)
+        _cleanup_duplicate_alerts()
+
         # Auto-resolve alerts for certificates that are no longer expiring
         _auto_resolve_alerts()
 
@@ -61,6 +64,10 @@ def check_and_send_alerts(app):
                 _resolve_all_cert_alerts(cert.id)
                 continue
 
+            # Resolve any OTHER alert instances for this cert with different rules FIRST
+            # This prevents duplicate notifications
+            _resolve_other_cert_alerts(cert.id, applicable_rule.id)
+
             # Get or create alert instance for the applicable rule ONLY
             instance = AlertInstance.query.filter_by(
                 certificate_id=cert.id,
@@ -79,9 +86,6 @@ def check_and_send_alerts(app):
                 db.session.add(instance)
                 db.session.commit()
                 logger.info(f"New alert instance created for cert {cert.id} ('{cert.common_name or cert.filename}') with rule {applicable_rule.id} ({applicable_rule.days_before_expiry} days)")
-
-            # Resolve any OTHER alert instances for this cert with different rules
-            _resolve_other_cert_alerts(cert.id, applicable_rule.id)
 
             # Skip paused alerts
             if instance.state == 'paused':
@@ -104,6 +108,7 @@ def check_and_send_alerts(app):
             ).first()
 
             if existing_log:
+                logger.debug(f"Alert already sent today for cert {cert.id} rule {applicable_rule.id}")
                 continue
 
             # Update instance last fired time
@@ -120,6 +125,13 @@ def check_and_send_alerts(app):
                 channels = NotificationChannel.query.filter_by(
                     is_enabled=True, is_default=True
                 ).all()
+
+            if not channels:
+                logger.warning(f"No notification channels available for cert {cert.id} rule {applicable_rule.id}")
+                continue
+
+            logger.info(f"Sending alert for cert {cert.id} ('{cert.common_name or cert.filename}') "
+                       f"expires in {cert.days_until_expiry} days, rule: {applicable_rule.name} ({applicable_rule.days_before_expiry}d)")
 
             for channel in channels:
                 _send_notification(cert, applicable_rule, channel)
@@ -185,6 +197,101 @@ def _resolve_all_cert_alerts(cert_id):
 
     if instances:
         db.session.commit()
+
+
+def _cleanup_duplicate_alerts():
+    """
+    Clean up duplicate alert instances for the same certificate.
+    For each certificate, keep only the alert with the smallest matching threshold active.
+    This handles cases where multiple alerts were created before the smart matching logic was implemented.
+    """
+    from sqlalchemy import func
+    
+    # Get all certificates with multiple active alert instances
+    duplicate_certs = db.session.query(
+        AlertInstance.certificate_id,
+        func.count(AlertInstance.id).label('count')
+    ).filter(
+        AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+    ).group_by(
+        AlertInstance.certificate_id
+    ).having(
+        func.count(AlertInstance.id) > 1
+    ).all()
+    
+    if not duplicate_certs:
+        return
+    
+    logger.info(f"Found {len(duplicate_certs)} certificates with duplicate alert instances, cleaning up...")
+    
+    # Get enabled rules sorted by threshold (smallest first)
+    rules = AlertRule.query.filter_by(is_enabled=True).order_by(
+        AlertRule.days_before_expiry.asc()
+    ).all()
+    
+    rule_map = {rule.id: rule for rule in rules}
+    
+    for cert_id, count in duplicate_certs:
+        # Get all active instances for this certificate
+        instances = AlertInstance.query.filter(
+            AlertInstance.certificate_id == cert_id,
+            AlertInstance.state.in_(['firing', 'paused', 'acknowledged'])
+        ).all()
+        
+        if not instances:
+            continue
+        
+        # Get the certificate to check its expiry
+        cert = Certificate.query.get(cert_id)
+        if not cert or cert.days_until_expiry is None:
+            continue
+        
+        # Find the most appropriate rule for this certificate
+        applicable_rule_id = None
+        for rule in rules:
+            if cert.days_until_expiry <= rule.days_before_expiry:
+                applicable_rule_id = rule.id
+                break
+        
+        if not applicable_rule_id:
+            # Certificate doesn't match any threshold, resolve all
+            for instance in instances:
+                instance.state = 'resolved'
+                instance.resolved_at = datetime.now(timezone.utc)
+            logger.info(f"Resolved {len(instances)} instances for cert {cert_id} (no matching threshold)")
+            continue
+        
+        # Keep the instance matching the applicable rule, resolve others
+        kept_instance = None
+        for instance in instances:
+            if instance.alert_rule_id == applicable_rule_id:
+                kept_instance = instance
+            else:
+                instance.state = 'resolved'
+                instance.resolved_at = datetime.now(timezone.utc)
+                logger.info(f"Resolved duplicate alert instance {instance.id} for cert {cert_id} "
+                          f"(keeping rule {applicable_rule_id}, removed rule {instance.alert_rule_id})")
+        
+        # If we don't have an instance for the applicable rule, keep the one with the smallest threshold
+        if not kept_instance and instances:
+            # Sort instances by their rule's threshold
+            sorted_instances = sorted(instances, key=lambda i: rule_map.get(i.alert_rule_id).days_before_expiry 
+                                     if i.alert_rule_id in rule_map else 999)
+            kept_instance = sorted_instances[0]
+            kept_instance.state = 'firing'  # Reset to firing if it was paused/acknowledged
+            logger.info(f"Kept alert instance {kept_instance.id} for cert {cert_id} with rule {kept_instance.alert_rule_id}")
+    
+    db.session.commit()
+    logger.info("Duplicate alert cleanup completed")
+
+
+def cleanup_duplicate_alerts():
+    """
+    Public API to clean up duplicate alert instances.
+    For each certificate, keeps only the alert with the smallest matching threshold active.
+    Resolves all other duplicate alert instances.
+    """
+    return _cleanup_duplicate_alerts()
 
 
 def _send_notification(cert, rule, channel):

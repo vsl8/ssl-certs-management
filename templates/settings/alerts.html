@@ -10,9 +10,14 @@
         <div class="card admin-card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Active Alerts</h6>
-                <span class="badge bg-{% if firing_alerts|length > 0 %}warning text-dark{% else %}success{% endif %}">
-                    {{ firing_alerts|length }} active
-                </span>
+                <div>
+                    <button class="btn btn-outline-secondary btn-sm me-2" id="cleanupDuplicatesBtn" title="Clean up duplicate alert instances">
+                        <i class="bi bi-brush"></i> Cleanup Duplicates
+                    </button>
+                    <span class="badge bg-{% if firing_alerts|length > 0 %}warning text-dark{% else %}success{% endif %}">
+                        {{ firing_alerts|length }} active
+                    </span>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if firing_alerts %}
@@ -551,6 +556,50 @@ $('.btn-delete-alert-instance').on('click', function() {
                 } else {
                     Swal.fire('Error', data.message, 'error');
                 }
+            });
+        }
+    });
+});
+
+// Cleanup duplicate alerts
+$('#cleanupDuplicatesBtn').on('click', function() {
+    const btn = $(this);
+    Swal.fire({
+        title: 'Cleanup Duplicate Alerts?',
+        html: `
+            <p>This will automatically resolve duplicate alert instances for the same certificate.</p>
+            <p><strong>Only the most appropriate alert threshold will be kept active for each certificate.</strong></p>
+            <p class="text-muted mb-0">This is useful if you see multiple alerts for the same certificate.</p>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#0d6efd',
+        confirmButtonText: 'Yes, cleanup now',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-1"></i> Cleaning...');
+            
+            fetch('/settings/alerts/cleanup-duplicates', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                btn.prop('disabled', false).html('<i class="bi bi-brush"></i> Cleanup Duplicates');
+                
+                if (data.success) {
+                    Swal.fire({ 
+                        title: 'Cleanup Complete!', 
+                        text: data.message, 
+                        icon: 'success', 
+                        timer: 2000, 
+                        showConfirmButton: false 
+                    });
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(err => {
+                btn.prop('disabled', false).html('<i class="bi bi-brush"></i> Cleanup Duplicates');
+                Swal.fire('Error', 'Failed to cleanup duplicates', 'error');
             });
         }
     });
