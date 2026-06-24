@@ -15,11 +15,13 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Theme CSS -->
+    <link href="{{ url_for('static', filename='css/themes.css') }}" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body{% if current_user.is_authenticated %} data-theme="{{ current_user.theme }}"{% endif %}>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -382,6 +384,44 @@
                 checkInactivity();
             }
         });
+    })();
+    </script>
+
+    <!-- Theme Management Script -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Apply theme on page load
+        function applyTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme') || 'default';
+            
+            // If theme is 'system', detect system preference
+            if (currentTheme === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                const actualTheme = prefersDark ? 'dark' : 'default';
+                body.setAttribute('data-theme', actualTheme);
+                
+                // Listen for system theme changes
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                    // Only update if user's preference is still 'system'
+                    const userTheme = '{{ current_user.theme if current_user.is_authenticated else "default" }}';
+                    if (userTheme === 'system') {
+                        const newTheme = e.matches ? 'dark' : 'default';
+                        body.setAttribute('data-theme', newTheme);
+                    }
+                });
+            }
+        }
+        
+        // Apply theme immediately (before DOM ready to prevent flash)
+        applyTheme();
+        
+        // Also apply after DOM is fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyTheme);
+        }
     })();
     </script>
 

@@ -107,6 +107,19 @@ def profile():
             log.info('Email updated for user: %s', current_user.username)
             return jsonify({'success': True, 'message': 'Email updated successfully!'})
 
+        elif action == 'change_theme':
+            new_theme = request.form.get('theme', 'default').strip()
+            
+            # Validate theme value
+            valid_themes = ['default', 'dark', 'ocean', 'forest', 'sunset', 'system']
+            if new_theme not in valid_themes:
+                return jsonify({'success': False, 'message': 'Invalid theme selected.'}), 400
+            
+            current_user.theme = new_theme
+            db.session.commit()
+            log.info('Theme updated to %s for user: %s', new_theme, current_user.username)
+            return jsonify({'success': True, 'message': 'Theme updated successfully! Page will reload.'})
+
     return render_template('auth/profile.html')
 
 

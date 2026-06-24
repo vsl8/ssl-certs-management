@@ -22,7 +22,7 @@
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background-color: var(--body-bg);
-    color: #334155;
+    color: var(--text-primary, #334155);
     overflow-x: hidden;
 }
 
@@ -130,8 +130,8 @@ body {
 /* ─── Topbar ─── */
 .topbar {
     height: var(--topbar-height);
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--topbar-bg, #fff);
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -144,7 +144,7 @@ body {
 
 .page-title {
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary, #1e293b);
 }
 
 /* ─── Content Wrapper ─── */
@@ -157,12 +157,12 @@ body {
     border: none;
     border-radius: 12px;
     box-shadow: var(--card-shadow);
-    background: #fff;
+    background: var(--card-bg, #fff);
 }
 
 .admin-card .card-header {
     background: transparent;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
     padding: 16px 20px;
     font-weight: 600;
 }
@@ -239,22 +239,24 @@ body {
 
 /* Mini Stat Cards */
 .mini-stat-card {
-    background: #fff;
+    background: var(--card-bg, #fff);
     border-radius: 12px;
     padding: 16px 20px;
     box-shadow: var(--card-shadow);
     height: 100%;
+    border: 1px solid var(--border-color, transparent);
 }
 
 .mini-stat-value {
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.2;
+    color: var(--text-primary, inherit);
 }
 
 .mini-stat-label {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--text-secondary, #64748b);
     font-weight: 500;
 }
 
