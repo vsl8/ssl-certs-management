@@ -6,22 +6,34 @@ echo "SSL Certificate Manager - Starting"
 echo "=========================================="
 
 # Run database migrations
-echo "Running database migrations..."
+MIGRATION_DIR="migrations"
 
-# Migration 1: Add theme column
-if uv run python migrate_add_theme.py; then
-    echo "✓ Theme migration completed successfully"
+if [ -d "$MIGRATION_DIR" ]; then
+    echo "Checking for database migrations..."
+    
+    # Find all Python files starting with "migrate_" in the migrations folder
+    MIGRATION_FILES=$(find "$MIGRATION_DIR" -maxdepth 1 -name "migrate_*.py" -type f | sort)
+    
+    if [ -n "$MIGRATION_FILES" ]; then
+        echo "Found migration files, running..."
+        
+        # Run each migration file
+        for migration in $MIGRATION_FILES; do
+            migration_name=$(basename "$migration")
+            echo ""
+            echo "→ Running migration: $migration_name"
+            
+            if uv run python "$migration"; then
+                echo "  ✓ $migration_name completed successfully"
+            else
+                echo "  ⚠ $migration_name returned an error (may already be applied)"
+            fi
+        done
+    else
+        echo "No migration files found (this is normal for fresh installations)"
+    fi
 else
-    echo "⚠ Theme migration returned an error or theme column already exists"
-fi
-
-# Migration 2: Add CASCADE delete to alert_instances and alert_logs
-echo ""
-echo "Running alert instances CASCADE migration..."
-if uv run python migrate_alert_instances.py; then
-    echo "✓ Alert instances migration completed successfully"
-else
-    echo "⚠ Alert instances migration returned an error"
+    echo "No migrations directory found, skipping migrations"
 fi
 
 echo ""

@@ -51,3 +51,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Database is selected via `DB_TYPE` env var (`sqlite` default, or `mariadb` with `DB_HOST`/`DB_PORT`/`DB_NAME`/`DB_USER`/`DB_PASS`). See `config.py` and `.env.example`.
 - Default cert/backup storage paths point to `/etc/pki/tls/certs` and `/etc/pki/tls/backup`, but are overridden at runtime via the `settings` table.
+
+## Database Migrations
+
+- Database migrations are stored in the `migrations/` directory
+- Any Python file starting with `migrate_` in the migrations folder is automatically executed on Docker container startup
+- Migrations run in alphabetical order (sorted by filename)
+- Each migration should be idempotent (safe to run multiple times)
+- **Fresh installations do not require migrations** - the schema in `models.py` is already correct
+- Migrations are only needed when upgrading existing databases from older versions
+- When adding a new migration, follow the naming pattern: `migrate_<number>_<description>.py`
+- See `migrations/README.md` for detailed migration documentation
