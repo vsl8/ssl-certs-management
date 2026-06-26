@@ -12,10 +12,13 @@ A modern Flask-based web application for managing, monitoring, and converting SS
 - **Certificate Management** - Upload, view, edit, download, and delete certificates
 - **Certificate Parsing** - Automatically extracts certificate details (CN, SAN, issuer, validity, fingerprints)
 - **Format Conversion** - Convert between PEM, DER, CRT, CER, PFX/P12, P7B, and KEY formats
+- **CSR Generation** - Create Certificate Signing Requests (CSR) with customizable parameters and templates
+- **Sectigo/InCommon Integration** - Download and manage certificates from Sectigo/InCommon
 - **Expiry Alerts** - Configurable alert rules with multiple notification channels
 - **Notifications** - Email (SMTP), Slack, Microsoft Teams, and generic Webhook support
+- **Certificate Backup & Restore** - Automated and manual backups of certificates and database
 - **Authentication** - Secure login with password hashing
-- **Logging** - Configurable logging with file rotation
+- **Logging** - Configurable logging with file rotation and runtime configuration
 - **Docker Ready** - Production-ready Docker and Docker Compose setup
 
 ## Supported Certificate Formats
@@ -92,6 +95,10 @@ A modern Flask-based web application for managing, monitoring, and converting SS
 | `DB_NAME` | `certmanager` | MariaDB database name |
 | `DB_USER` | `certmanager` | MariaDB username |
 | `DB_PASS` | - | MariaDB password |
+| `FLASK_ENV` | `production` | Flask environment (`development` or `production`) |
+| `LOG_LEVEL` | `INFO` | Default logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL) |
+| `UPLOAD_FOLDER` | `uploads/` | Default certificate upload directory |
+| `MAX_CONTENT_LENGTH` | 16MB | Maximum file upload size |
 
 ### Database Options
 
@@ -141,30 +148,66 @@ The default `docker-compose.yaml` includes:
 
 ```
 ssl-cert-project/
-├── app.py                 # Application factory and scheduler
-├── config.py              # Configuration settings
-├── models.py              # SQLAlchemy database models
-├── cert_utils.py          # Certificate parsing utilities
-├── conversion_utils.py    # Format conversion functions
-├── backup_utils.py        # Backup and restore utilities
-├── notifications.py       # Alert notification system
-├── logger.py              # Logging configuration
+├── app.py                      # Application factory and scheduler setup
+├── config.py                   # Configuration settings
+├── models.py                   # SQLAlchemy database models and bootstrap
+├── cert_utils.py               # Certificate parsing and manipulation utilities
+├── conversion_utils.py         # Format conversion functions (PEM, DER, PFX, etc.)
+├── sectigo_utils.py            # Sectigo/InCommon integration utilities
+├── backup_utils.py             # Backup and restore utilities
+├── notifications.py            # Alert notification system (Email, Slack, Teams, Webhooks)
+├── logger.py                   # Centralized logging configuration
 ├── routes/
-│   ├── auth.py            # Authentication routes
-│   ├── dashboard.py       # Dashboard routes
-│   ├── certificates.py    # Certificate CRUD routes
-│   ├── settings.py        # Settings, alerts, and backup routes
-│   └── conversion.py      # Conversion routes
-├── templates/             # Jinja2 HTML templates
-├── static/                # CSS, JS, images
-├── instance/              # SQLite database (auto-created)
-├── uploads/               # Uploaded certificate files
-├── logs/                  # Application logs
-├── Dockerfile             # Docker build configuration
-├── docker-compose.yaml    # Docker Compose setup
-├── pyproject.toml         # Python dependencies (uv)
-└── requirements.txt       # Python dependencies (pip)
+│   ├── auth.py                 # Authentication and user management
+│   ├── dashboard.py            # Dashboard and overview
+│   ├── certificates.py         # Certificate CRUD and Sectigo operations
+│   ├── settings.py             # Settings, alerts, notifications, backups
+│   ├── conversion.py           # Format conversion
+│   ├── csr.py                  # CSR generation and templates
+│   └── __init__.py             # Blueprint registration
+├── templates/                  # Jinja2 HTML templates
+│   ├── base.html               # Base template with navigation
+│   ├── auth/                   # Authentication templates
+│   ├── certificates/           # Certificate management templates
+│   ├── settings/               # Settings templates (alerts, backups, etc.)
+│   ├── csr/                    # CSR generation templates
+│   ├── conversion/             # Format conversion template
+│   └── dashboard.html          # Dashboard template
+├── static/                     # CSS, JavaScript, images
+├── migrations/                 # Database migration scripts
+├── instance/                   # Instance-specific files (SQLite database, auto-created)
+├── uploads/                    # Uploaded certificate files storage
+├── logs/                       # Application logs
+├── graphify-out/               # Knowledge graph outputs (auto-generated)
+├── .github/                    # GitHub configuration
+├── Dockerfile                  # Docker container definition
+├── docker-compose.yaml         # Docker Compose multi-container setup
+├── pyproject.toml              # Python dependencies and project metadata (uv)
+├── requirements.txt            # Python dependencies (pip)
+├── .env.example                # Example environment variables
+├── CLAUDE.md                   # AI assistant instructions
+├── AGENTS.md                   # Agent integration guide
+└── README.md                   # This file
 ```
+
+## Architecture & Knowledge Graph
+
+This project includes a built-in knowledge graph for architectural analysis:
+
+- **Graph Location:** `graphify-out/graph.json` (auto-generated)
+- **Visualizations:**
+  - `graphify-out/graph.html` — Interactive architectural graph
+  - `graphify-out/ssl-certs-management-callflow.html` — Call-flow diagrams by module
+- **Query Tools:**
+  - `graphify query "<question>"` — Ask architectural questions
+  - `graphify path "<A>" "<B>"` — Find relationships between components
+  - `graphify explain "<concept>"` — Get explanations of key functions
+
+**Key Components (God Nodes):**
+- `get_logger()` — Centralized logging (14+ connections)
+- `Setting` — Runtime configuration hub (12+ connections)
+- `check_and_send_alerts()` — Background alert job (10+ connections)
+- `refresh_cert_expiry()` — Expiry calculation (9+ connections)
 
 ## Features Guide
 
@@ -195,6 +238,47 @@ Navigate to **Conversion** to convert certificates between formats:
 - PFX/P12 → PEM, CRT, DER, KEY (extract private key)
 - P7B → PEM, CRT, DER
 - KEY → PEM, DER
+
+### CSR Generation
+
+Create Certificate Signing Requests (CSR) for obtaining new certificates from Certificate Authorities.
+
+**Key Features:**
+
+1. **CSR Templates** - Save and reuse common CSR configurations
+2. **Flexible Configuration** - Customize all CSR parameters (CN, organization, country, etc.)
+3. **SAN Support** - Add Subject Alternative Names (SANs) to CSRs
+4. **Key Management** - Specify key size (2048, 4096) and algorithm
+5. **File Management** - Download CSRs and private keys, manage existing requests
+
+**Using CSR Generation:**
+
+1. Go to **CSR → Templates** to create reusable configurations
+2. Click **Generate CSR** and select or create a template
+3. Review and customize parameters as needed
+4. Download the CSR and private key (keep the private key secure!)
+5. Submit the CSR to your Certificate Authority
+
+**Important:** Private keys are generated and stored locally. Never share your private key with anyone.
+
+### Sectigo/InCommon Integration
+
+Download and manage certificates issued by Sectigo/InCommon directly within the application.
+
+**Features:**
+
+1. **Direct Download** - Fetch certificates from Sectigo/InCommon using SSL ID
+2. **Certificate Chain** - Automatically combines root and intermediate certificates
+3. **DNS Validation** - Extract DNS names from downloaded certificates
+4. **Session Management** - Handles temporary certificate files securely
+
+**Using Sectigo Download:**
+
+1. Go to **Certificates → Sectigo Download**
+2. Enter your Sectigo SSL ID
+3. Click **Download Certificate**
+4. Review the downloaded certificate
+5. Save to your certificate store or download for use
 
 ### Backup & Restore
 
@@ -273,6 +357,24 @@ server {
 }
 ```
 
+## Background Jobs & Scheduling
+
+The application uses **APScheduler** to manage background tasks:
+
+### Hourly Alert Check
+- Runs every 60 minutes automatically
+- Checks for expiring certificates against configured alert rules
+- Sends notifications to configured channels (Email, Slack, Teams, Webhook)
+- Updates `AlertLog` with check results
+
+### Scheduled Backups
+- Configured in **Settings → Backup**
+- Runs at the scheduled time to automatically backup certificates
+- Creates timestamped ZIP and SQL backup files
+- Automatically cleans up backups older than 5 (configurable)
+
+**Important:** Background jobs are registered at application startup. Changes to backup schedules in the UI take effect immediately for new triggers, but job list is refreshed on app restart.
+
 ## Development
 
 ### Running in Development Mode
@@ -298,19 +400,43 @@ The project follows PEP 8 style guidelines.
 **Database errors on startup**
 - Ensure the `instance/` directory exists and is writable
 - For MariaDB, verify connection settings in `.env`
+- Check that the database user has CREATE/ALTER table privileges
 
 **Certificate parsing fails**
 - Check if the file is a valid certificate format
 - For PFX/P12 files, ensure the correct password is provided
+- Try uploading to the Conversion tool to debug format issues
 
 **Notifications not sending**
-- Verify notification channel configuration
-- Check logs for error messages
-- Use the "Test" button to validate settings
+- Verify notification channel configuration in **Settings → Notification Channels**
+- Click "Test" button to validate channel settings
+- Check application logs (`logs/certmanager.log`) for error messages
+- For SMTP: verify server, port, authentication, and TLS settings
+- For Slack/Teams/Webhook: verify URL is accessible and correct format
+
+**Background jobs not running (alerts/backups)**
+- Check that APScheduler is initialized properly
+- Verify the application hasn't exited unexpectedly
+- In development, run with `uv run flask run` (not via import)
+- Check logs for job execution errors
+- Restart the application to re-register jobs
+
+**CSR generation fails**
+- Ensure `openssl` is installed and accessible: `which openssl`
+- Check CSR storage directory (`csr_storage_path`) exists and is writable
+- For Windows, use WSL or Docker container
+
+**Sectigo download issues**
+- Verify SSL ID format and validity
+- Check internet connectivity to Sectigo servers
+- Ensure temporary directory `/tmp/sectigo_certs` is writable
+- Check application logs for validation errors
 
 **Login issues**
 - Default credentials: `admin` / `Root@123456789`
-- If locked out, delete `instance/certmanager.db` to reset (loses all data)
+- If locked out (SQLite): delete `instance/certmanager.db` to reset (loses all data)
+- For MariaDB: manually delete the user from database
+- Verify `SECRET_KEY` is consistent across restarts
 
 ## License
 
