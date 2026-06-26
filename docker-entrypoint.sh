@@ -7,10 +7,21 @@ echo "=========================================="
 
 # Run database migrations
 echo "Running database migrations..."
+
+# Migration 1: Add theme column
 if uv run python migrate_add_theme.py; then
-    echo "✓ Database migrations completed successfully"
+    echo "✓ Theme migration completed successfully"
 else
-    echo "⚠ Migration script returned an error or theme column already exists"
+    echo "⚠ Theme migration returned an error or theme column already exists"
+fi
+
+# Migration 2: Add CASCADE delete to alert_instances and alert_logs
+echo ""
+echo "Running alert instances CASCADE migration..."
+if uv run python migrate_alert_instances.py; then
+    echo "✓ Alert instances migration completed successfully"
+else
+    echo "⚠ Alert instances migration returned an error"
 fi
 
 echo ""
