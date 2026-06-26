@@ -1,0 +1,3249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ssl-certs-management — Complete Call Flow &amp; Architecture Documentation</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --border: #334155;
+  --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+  --warn: #fbbf24; --err: #f87171; --ok: #34d399;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+h1 { font-size: 2.4rem; margin-bottom: 8px; background: linear-gradient(135deg, var(--accent), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+h2 { font-size: 1.7rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+h3 { font-size: 1.25rem; margin: 32px 0 12px; color: var(--accent); }
+h4 { font-size: 1.05rem; margin: 20px 0 8px; color: var(--warn); }
+p { margin: 8px 0; color: var(--muted); }
+.subtitle { color: var(--muted); font-size: 1.1rem; margin-bottom: 32px; }
+.mermaid { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.mermaid.is-enhanced { padding: 0; overflow: hidden; min-height: 260px; }
+.mermaid-viewport { padding: 54px 24px 24px; overflow: hidden; cursor: grab; touch-action: none; min-height: 260px; }
+.mermaid-viewport.is-dragging { cursor: grabbing; }
+.mermaid-viewport svg { max-width: none !important; height: auto; transform-origin: 0 0; transition: transform 120ms ease; }
+.mermaid-toolbar { position: absolute; top: 10px; right: 10px; z-index: 3; display: flex; align-items: center; gap: 6px; padding: 6px; background: rgba(15,23,42,0.92); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.28); }
+.mermaid-toolbar button, .mermaid-toolbar .zoom-level { height: 28px; min-width: 32px; border: 1px solid var(--border); border-radius: 6px; background: #1e293b; color: var(--text); font: 600 0.78rem system-ui, sans-serif; display: inline-flex; align-items: center; justify-content: center; }
+.mermaid-toolbar button { cursor: pointer; }
+.mermaid-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+.mermaid-toolbar .zoom-level { min-width: 52px; color: var(--muted); background: transparent; }
+.call-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+.call-table th { background: #1a2744; color: var(--accent); text-align: left; padding: 10px 14px; border: 1px solid var(--border); }
+.call-table td { padding: 8px 14px; border: 1px solid var(--border); vertical-align: top; }
+.call-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+.tag-async { background: #7c3aed33; color: #a78bfa; }
+.tag-class { background: #05966933; color: var(--ok); }
+.tag-func { background: #2563eb33; color: var(--accent); }
+.tag-cmd { background: #d9770633; color: var(--warn); }
+.tag-endpoint { background: #dc262633; color: var(--err); }
+.tag-hook { background: #db277733; color: #f472b6; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 16px 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 16px 0; }
+.arrow-chain { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent); padding: 10px; background: rgba(56,189,248,0.06); border-radius: 6px; }
+code { font-family: 'Fira Code', 'Cascadia Code', monospace; background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 0.88em; }
+ul, ol { margin: 8px 0 8px 24px; color: var(--muted); }
+li { margin: 4px 0; }
+a { color: var(--accent); }
+hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+.nav { position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem; }
+.nav a { text-decoration: none; }
+.nav a:hover { text-decoration: underline; }
+@media (max-width: 768px) { .container { padding: 16px; } h1 { font-size: 1.8rem; } }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>ssl-certs-management — Complete Call Flow &amp; Architecture Documentation</h1>
+<p class="subtitle">Generated from graphify knowledge graph: 341 nodes, 521 edges, 34 communities. Commit: 9ca9931</p>
+
+<div class="nav">
+    <a href="#overview">Architecture Overview</a>
+    <a href="#extract-pipeline">Extraction Pipeline</a>
+    <a href="#analysis-clustering">Analysis &amp; Clustering</a>
+    <a href="#cli-skills">CLI &amp; Skill Installers</a>
+    <a href="#ingest-cache-update">Ingestion &amp; Updates</a>
+    <a href="#serve-api">Serving API</a>
+    <a href="#tests-fixtures">Tests &amp; Fixtures</a>
+    <a href="#application-core">Application Core</a>
+    <a href="#model-design-rationale">Model Design Rationale</a>
+    <a href="#logger-reconfiguration">Logger Reconfiguration</a>
+    <a href="#notification-channels">Notification Channels</a>
+    <a href="#test-certificate-generation">Test Certificate Generation</a>
+    <a href="#alert-instances">Alert Instances</a>
+    <a href="#docker-entrypoint">Docker Entrypoint</a>
+    <a href="#javascript-ui">JavaScript UI</a>
+    <a href="#other">Other</a>
+</div>
+
+<!-- ====== Architecture Overview ====== -->
+<h2 id="overview">1. Architecture Overview</h2>
+
+<div class="mermaid">
+
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    EXTRACT_PIPELINE_5F350230("Extraction Pipeline<br/><small>60 nodes</small>")
+    class EXTRACT_PIPELINE_5F350230 module;
+    ANALYSIS_CLUSTERING_C79796DA("Analysis &amp; Clustering<br/><small>38 nodes</small>")
+    class ANALYSIS_CLUSTERING_C79796DA module;
+    CLI_SKILLS_9964CBB8("CLI &amp; Skill Installers<br/><small>2 nodes</small>")
+    class CLI_SKILLS_9964CBB8 module;
+    INGEST_CACHE_UPDATE_FF457338("Ingestion &amp; Updates<br/><small>100 nodes</small>")
+    class INGEST_CACHE_UPDATE_FF457338 module;
+    SERVE_API_35EC8E86("Serving API<br/><small>55 nodes</small>")
+    class SERVE_API_35EC8E86 module;
+    TESTS_FIXTURES_B84B1DCC("Tests &amp; Fixtures<br/><small>8 nodes</small>")
+    class TESTS_FIXTURES_B84B1DCC module;
+    APPLICATION_CORE_815B3947("Application Core<br/><small>20 nodes</small>")
+    class APPLICATION_CORE_815B3947 module;
+    MODEL_DESIGN_RATIONALE_14DCD8FF("Model Design Rationale<br/><small>17 nodes</small>")
+    class MODEL_DESIGN_RATIONALE_14DCD8FF module;
+    LOGGER_RECONFIGURATION_BC4604A1("Logger Reconfiguration<br/><small>4 nodes</small>")
+    class LOGGER_RECONFIGURATION_BC4604A1 module;
+    NOTIFICATION_CHANNELS_BE47DAA2("Notification Channels<br/><small>4 nodes</small>")
+    class NOTIFICATION_CHANNELS_BE47DAA2 module;
+    TEST_CERTIFICATE_GENERATION_AD199484("Test Certificate Generation<br/><small>4 nodes</small>")
+    class TEST_CERTIFICATE_GENERATION_AD199484 module;
+    ALERT_INSTANCES_39B0ECC0("Alert Instances<br/><small>3 nodes</small>")
+    class ALERT_INSTANCES_39B0ECC0 module;
+    DOCKER_ENTRYPOINT_F85EB730("Docker Entrypoint<br/><small>2 nodes</small>")
+    class DOCKER_ENTRYPOINT_F85EB730 module;
+    JAVASCRIPT_UI_4D41A221("JavaScript UI<br/><small>2 nodes</small>")
+    class JAVASCRIPT_UI_4D41A221 module;
+    OTHER_D0941E68("Other<br/><small>22 nodes</small>")
+    class OTHER_D0941E68 module;
+    EXTRACT_PIPELINE_5F350230 -->|contains x15| INGEST_CACHE_UPDATE_FF457338
+    SERVE_API_35EC8E86 -->|contains x11| OTHER_D0941E68
+    ANALYSIS_CLUSTERING_C79796DA -->|imports x9| SERVE_API_35EC8E86
+    APPLICATION_CORE_815B3947 -->|imports x8| SERVE_API_35EC8E86
+    EXTRACT_PIPELINE_5F350230 -->|imports x6| SERVE_API_35EC8E86
+    APPLICATION_CORE_815B3947 -->|imports x5| EXTRACT_PIPELINE_5F350230
+    SERVE_API_35EC8E86 -->|imports x5| EXTRACT_PIPELINE_5F350230
+    SERVE_API_35EC8E86 -->|contains x4| ANALYSIS_CLUSTERING_C79796DA
+    ANALYSIS_CLUSTERING_C79796DA -->|imports x3| EXTRACT_PIPELINE_5F350230
+    INGEST_CACHE_UPDATE_FF457338 -->|imports x3| EXTRACT_PIPELINE_5F350230
+    SERVE_API_35EC8E86 -->|contains x3| INGEST_CACHE_UPDATE_FF457338
+    APPLICATION_CORE_815B3947 -->|imports x2| ANALYSIS_CLUSTERING_C79796DA
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h4>Architecture Layers</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>Layer</th><th>Nodes</th><th>Communities</th></tr>
+      <tr><td>Extraction Pipeline</td><td>60</td><td><code>0</code></td></tr><tr><td>Analysis &amp; Clustering</td><td>38</td><td><code>3</code></td></tr><tr><td>CLI &amp; Skill Installers</td><td>2</td><td><code>18</code></td></tr><tr><td>Ingestion &amp; Updates</td><td>100</td><td><code>1, 4, 7, 14</code></td></tr><tr><td>Serving API</td><td>55</td><td><code>2, 8, 21, 22</code></td></tr><tr><td>Tests &amp; Fixtures</td><td>8</td><td><code>12, 13</code></td></tr><tr><td>Application Core</td><td>20</td><td><code>5</code></td></tr><tr><td>Model Design Rationale</td><td>17</td><td><code>6</code></td></tr><tr><td>Logger Reconfiguration</td><td>4</td><td><code>10</code></td></tr><tr><td>Notification Channels</td><td>4</td><td><code>11</code></td></tr><tr><td>Test Certificate Generation</td><td>4</td><td><code>9</code></td></tr><tr><td>Alert Instances</td><td>3</td><td><code>15</code></td></tr><tr><td>Docker Entrypoint</td><td>2</td><td><code>16</code></td></tr><tr><td>JavaScript UI</td><td>2</td><td><code>17</code></td></tr><tr><td>Other</td><td>22</td><td><code>19, 20, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33</code></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Core Flow</h4>
+    <div class="arrow-chain">CLI &amp; Skill Installers -&gt; Extraction Pipeline -&gt; Ingestion &amp; Updates -&gt; Analysis &amp; Clustering -&gt; Serving API -&gt; Other -&gt; Tests &amp; Fixtures</div>
+  </div>
+</div>
+<div class="grid">
+  <div class="card">
+    <h4>Graph Report Highlights</h4>
+    <ul>
+      <li>341 nodes · 521 edges · 34 communities (18 shown, 16 thin omitted)</li>
+      <li>Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 24 edges (avg confidence: 0.9)</li>
+      <li>Token cost: 42,850 input · 4,421 output</li>
+      <li>1. `get_logger()` - 14 edges</li>
+      <li>2. `SSL Certificate Manager` - 13 edges</li>
+      <li>3. `Setting` - 12 edges</li>
+    </ul>
+  </div>
+</div>
+<hr>
+<!-- ====== 2. Extraction Pipeline ====== -->
+<h2 id="extract-pipeline">2. Extraction Pipeline</h2>
+<p>Extraction Pipeline groups implementation around notificationspy, utilspy, conversion, certificate, mostly in notifications.py, conversion_utils.py, routes/conversion.py. This section covers 60 nodes and 93 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Extraction Pipeline (60 nodes, 93 edges)
+    subgraph extract_pipeline_conversion_utils_py_e383a57a["conversion_utils.py"]
+        conversion_utils_856143ca("conversion_utils.py")
+        conversion_utils_get_output_formats_6374e822("get_output_formats()<br/><small>conversion_utils.py</small>")
+        conversion_utils_convert_certificate_b0ac24f2("convert_certificate()<br/><small>conversion_utils.py</small>")
+        conversion_utils_try_load_private_key_fe7bc0fa("_try_load_private_key()<br/><small>conversion_utils.py</small>")
+        conversion_utils_extract_key_from_pem_e33bee53("_extract_key_from_pem()<br/><small>conversion_utils.py</small>")
+        conversion_utils_load_jks_keystore_ce84573a("_load_jks_keystore()<br/><small>conversion_utils.py</small>")
+        conversion_utils_create_jks_keystore_591c401c("_create_jks_keystore()<br/><small>conversion_utils.py</small>")
+    end
+    subgraph extract_pipeline_notifications_py_fc77dbc6["notifications.py"]
+        notifications_check_and_send_alerts_1c8e30db("check_and_send_alerts()<br/><small>notifications.py</small>")
+        notifications_send_notification_0be31706("_send_notification()<br/><small>notifications.py</small>")
+        notifications_auto_resolve_alerts_4576342a("_auto_resolve_alerts()<br/><small>notifications.py</small>")
+        notifications_cleanup_duplicate_alerts_5208d8e4("_cleanup_duplicate_alerts()<br/><small>notifications.py</small>")
+    end
+    subgraph extract_pipeline_cert_utils_py_af1bc5c3["cert_utils.py"]
+        cert_utils_2a9e68f7("cert_utils.py")
+        cert_utils_refresh_cert_expiry_cdb461bf("refresh_cert_expiry()<br/><small>cert_utils.py</small>")
+    end
+    subgraph extract_pipeline_models_py_c2989245["models.py"]
+        models_alertlog_c98c8722("AlertLog<br/><small>models.py</small>")
+        models_alertlog_repr_2ca49196("__repr__()<br/><small>models.py</small>")
+    end
+    subgraph extract_pipeline_routes_conversion_py_18f36542["routes/conversion.py"]
+        routes_conversion_get_formats_9f9637d5("get_formats()<br/><small>routes/conversion.py</small>")
+        routes_conversion_convert_2eabe37b("convert()<br/><small>routes/conversion.py</small>")
+    end
+    routes_dashboard_index_15da00b7("index()<br/><small>routes/dashboard.py</small>")
+    cert_utils_refresh_cert_expiry_cdb461bf -->|calls| notifications_check_and_send_alerts_1c8e30db
+    cert_utils_refresh_cert_expiry_cdb461bf -->|calls| routes_dashboard_index_15da00b7
+    conversion_utils_get_output_formats_6374e822 -->|calls| conversion_utils_convert_certificate_b0ac24f2
+    conversion_utils_get_output_formats_6374e822 -->|calls| routes_conversion_get_formats_9f9637d5
+    conversion_utils_try_load_private_key_fe7bc0fa -->|calls| conversion_utils_convert_certificate_b0ac24f2
+    conversion_utils_extract_key_from_pem_e33bee53 -->|calls| conversion_utils_convert_certificate_b0ac24f2
+    conversion_utils_load_jks_keystore_ce84573a -->|calls| conversion_utils_convert_certificate_b0ac24f2
+    conversion_utils_create_jks_keystore_591c401c -->|calls| conversion_utils_convert_certificate_b0ac24f2
+    conversion_utils_convert_certificate_b0ac24f2 -->|calls| routes_conversion_convert_2eabe37b
+    models_alertlog_c98c8722 -->|method| models_alertlog_repr_2ca49196
+    models_alertlog_c98c8722 -->|calls| notifications_send_notification_0be31706
+    notifications_check_and_send_alerts_1c8e30db -->|calls| notifications_auto_resolve_alerts_4576342a
+    notifications_check_and_send_alerts_1c8e30db -->|calls| notifications_cleanup_duplicate_alerts_5208d8e4
+    notifications_check_and_send_alerts_1c8e30db -->|calls| notifications_send_notification_0be31706
+    %% Omitted for readability: 42 nodes, 0 edges
+    class conversion_utils_856143ca module;
+    class conversion_utils_get_output_formats_6374e822 function;
+    class conversion_utils_convert_certificate_b0ac24f2 function;
+    class conversion_utils_try_load_private_key_fe7bc0fa function;
+    class conversion_utils_extract_key_from_pem_e33bee53 function;
+    class conversion_utils_load_jks_keystore_ce84573a ui;
+    class conversion_utils_create_jks_keystore_591c401c ui;
+    class notifications_check_and_send_alerts_1c8e30db function;
+    class notifications_send_notification_0be31706 function;
+    class notifications_auto_resolve_alerts_4576342a function;
+    class notifications_cleanup_duplicate_alerts_5208d8e4 function;
+    class cert_utils_2a9e68f7 module;
+    class cert_utils_refresh_cert_expiry_cdb461bf function;
+    class models_alertlog_c98c8722 klass;
+    class models_alertlog_repr_2ca49196 function;
+    class routes_conversion_get_formats_9f9637d5 function;
+    class routes_conversion_convert_2eabe37b function;
+    class routes_dashboard_index_15da00b7 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>cert_utils.py</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>conversion.py</code><br><small style="color:var(--muted)">routes/conversion.py</small><br><code>dashboard.py</code><br><small style="color:var(--muted)">routes/dashboard.py</small><br><code>get_logger()</code><br><small style="color:var(--muted)">logger.py</small><br>+2 more</td>
+  <td>Module file in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>refresh_cert_expiry()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>check_and_send_alerts()</code><br><small style="color:var(--muted)">notifications.py</small><br><code>dashboard.py</code><br><small style="color:var(--muted)">routes/dashboard.py</small><br><code>index()</code><br><small style="color:var(--muted)">routes/dashboard.py</small><br>+1 more</td>
+  <td>refresh_cert_expiry() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>Certificate parsing utilities. Supports: PEM, CRT, CER, DER, PFX/P12, KEY files.</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Certificate parsing utilities. Supports: PEM, CRT, CER, DER, PFX/P12, KEY files..</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>Refresh the days_until_expiry and is_expired for a certificate record.</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Refresh the days_until_expiry and is_expired for a certificate record..</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>conversion_utils.py</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>conversion.py</code><br><small style="color:var(--muted)">routes/conversion.py</small><br><code>get_logger()</code><br><small style="color:var(--muted)">logger.py</small><br><code>logger.py</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td>Module file in conversion_utils.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>get_output_formats()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>conversion.py</code><br><small style="color:var(--muted)">routes/conversion.py</small><br><code>convert_certificate()</code><br><small style="color:var(--muted)">conversion_utils.py</small><br><code>get_formats()</code><br><small style="color:var(--muted)">routes/conversion.py</small></td>
+  <td>get_output_formats() node in conversion_utils.py.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>_try_load_private_key()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>convert_certificate()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td>_try_load_private_key() node in conversion_utils.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>_extract_key_from_pem()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>convert_certificate()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td>_extract_key_from_pem() node in conversion_utils.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>_load_jks_keystore()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>convert_certificate()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td>_load_jks_keystore() node in conversion_utils.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>_create_jks_keystore()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-hook">UI</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>convert_certificate()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td>_create_jks_keystore() node in conversion_utils.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>convert_certificate()</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>_create_jks_keystore()</code><br><small style="color:var(--muted)">conversion_utils.py</small><br><code>_extract_key_from_pem()</code><br><small style="color:var(--muted)">conversion_utils.py</small><br><code>_load_jks_keystore()</code><br><small style="color:var(--muted)">conversion_utils.py</small><br>+2 more</td>
+  <td><code>conversion.py</code><br><small style="color:var(--muted)">routes/conversion.py</small><br><code>convert()</code><br><small style="color:var(--muted)">routes/conversion.py</small></td>
+  <td>convert_certificate() node in conversion_utils.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>Certificate conversion utilities. Supports conversion between PEM, DER, CRT, CER</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Certificate conversion utilities. Supports conversion between PEM, DER, CRT, CER.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>Get available output formats for a given input format.</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Get available output formats for a given input format..</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>Attempt to load a private key from PEM or DER data.</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Attempt to load a private key from PEM or DER data..</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>Try to extract private key from a combined PEM file (cert + key).</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Try to extract private key from a combined PEM file (cert + key)..</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>Load a JKS keystore and extract certificates and private keys.          Returns:</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Load a JKS keystore and extract certificates and private keys.          Returns:.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>Create a JKS keystore from a certificate and optional private key.          Args</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Create a JKS keystore from a certificate and optional private key.          Args.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>Convert a certificate from one format to another.      Args:         file_data:</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Convert a certificate from one format to another.      Args:         file_data:.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>logger.py</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>cert_utils.py</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>conversion_utils.py</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><code>conversion.py</code><br><small style="color:var(--muted)">routes/conversion.py</small><br><code>dashboard.py</code><br><small style="color:var(--muted)">routes/dashboard.py</small><br><code>notifications.py</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>Module file in logger.py.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>get_logger()</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>cert_utils.py</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>conversion_utils.py</code><br><small style="color:var(--muted)">conversion_utils.py</small></td>
+  <td><code>conversion.py</code><br><small style="color:var(--muted)">routes/conversion.py</small><br><code>dashboard.py</code><br><small style="color:var(--muted)">routes/dashboard.py</small><br><code>notifications.py</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>get_logger() node in logger.py.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>Centralized logging configuration for SSL Cert Manager. Provides file + console</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Centralized logging configuration for SSL Cert Manager. Provides file + console.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>Get a child logger under the certmanager namespace.</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Get a child logger under the certmanager namespace..</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>AlertLog</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>_send_notification()</code><br><small style="color:var(--muted)">notifications.py</small><br><code>dashboard.py</code><br><small style="color:var(--muted)">routes/dashboard.py</small><br>+1 more</td>
+  <td>AlertLog node in models.py.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AlertLog</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>notifications.py</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>AlertLog</code><br><small style="color:var(--muted)">models.py</small><br><code>cert_utils.py</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>get_logger()</code><br><small style="color:var(--muted)">logger.py</small><br>+2 more</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in notifications.py.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>check_and_send_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>refresh_cert_expiry()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><code>_auto_resolve_alerts()</code><br><small style="color:var(--muted)">notifications.py</small><br><code>_cleanup_duplicate_alerts()</code><br><small style="color:var(--muted)">notifications.py</small><br><code>_resolve_all_cert_alerts()</code><br><small style="color:var(--muted)">notifications.py</small><br>+2 more</td>
+  <td>check_and_send_alerts() node in notifications.py.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>_auto_resolve_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>check_and_send_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>_auto_resolve_alerts() node in notifications.py.</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>_resolve_other_cert_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>check_and_send_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>_resolve_other_cert_alerts() node in notifications.py.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>_resolve_all_cert_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>check_and_send_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>_resolve_all_cert_alerts() node in notifications.py.</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>_cleanup_duplicate_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>check_and_send_alerts()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>_cleanup_duplicate_alerts() node in notifications.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>notifications.py</code></td><td>25 nodes</td></tr>
+<tr><td><code>conversion_utils.py</code></td><td>14 nodes</td></tr>
+<tr><td><code>routes/conversion.py</code></td><td>8 nodes</td></tr>
+<tr><td><code>cert_utils.py</code></td><td>4 nodes</td></tr>
+<tr><td><code>logger.py</code></td><td>4 nodes</td></tr>
+<tr><td><code>routes/dashboard.py</code></td><td>3 nodes</td></tr>
+<tr><td><code>models.py</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: explains x29, contains x23, calls x20, imports x11. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 3. Analysis & Clustering ====== -->
+<h2 id="analysis-clustering">3. Analysis &amp; Clustering</h2>
+<p>Analysis &amp; Clustering groups implementation around backup, utilspy, routes, settingspy, mostly in backup_utils.py, routes/settings.py. This section covers 38 nodes and 55 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Analysis &amp; Clustering (38 nodes, 55 edges)
+    subgraph analysis_clustering_backup_utils_py_07efca10["backup_utils.py"]
+        backup_utils_get_backup_path_fdf68a53("get_backup_path()<br/><small>backup_utils.py</small>")
+        backup_utils_get_timestamp_4c31321d("get_timestamp()<br/><small>backup_utils.py</small>")
+        backup_utils_cleanup_old_backups_d93a35a0("cleanup_old_backups()<br/><small>backup_utils.py</small>")
+        backup_utils_ensure_backup_dir_e699ca9f("ensure_backup_dir()<br/><small>backup_utils.py</small>")
+        backup_utils_generate_sql_dump_636a3b1b("generate_sql_dump()<br/><small>backup_utils.py</small>")
+        backup_utils_list_backups_7c7c3486("list_backups()<br/><small>backup_utils.py</small>")
+        backup_utils_delete_backup_d42a9bea("delete_backup()<br/><small>backup_utils.py</small>")
+        backup_utils_backup_certificates_5c7eb98e("backup_certificates()<br/><small>backup_utils.py</small>")
+        backup_utils_backup_database_abbe37e0("backup_database()<br/><small>backup_utils.py</small>")
+        backup_utils_run_scheduled_backup_bfd0f822("run_scheduled_backup()<br/><small>backup_utils.py</small>")
+        backup_utils_generate_create_table_b115d224("generate_create_table()<br/><small>backup_utils.py</small>")
+        backup_utils_generate_insert_statement_cac4f2d4("generate_insert_statement()<br/><small>backup_utils.py</small>")
+        backup_utils_escape_sql_string_3d7543c3("escape_sql_string()<br/><small>backup_utils.py</small>")
+        backup_utils_format_file_size_57ed7a46("format_file_size()<br/><small>backup_utils.py</small>")
+    end
+    subgraph analysis_clustering_routes_settings_py_16afbf72["routes/settings.py"]
+        routes_settings_download_backup_c3c0fd99("download_backup()<br/><small>routes/settings.py</small>")
+        routes_settings_backup_certs_287805b2("backup_certs()<br/><small>routes/settings.py</small>")
+        routes_settings_backup_db_44041e01("backup_db()<br/><small>routes/settings.py</small>")
+        routes_settings_backup_7f384895("backup()<br/><small>routes/settings.py</small>")
+    end
+    backup_utils_get_backup_path_fdf68a53 -->|calls| backup_utils_cleanup_old_backups_d93a35a0
+    backup_utils_get_backup_path_fdf68a53 -->|calls| backup_utils_delete_backup_d42a9bea
+    backup_utils_get_backup_path_fdf68a53 -->|calls| backup_utils_ensure_backup_dir_e699ca9f
+    backup_utils_get_backup_path_fdf68a53 -->|calls| backup_utils_list_backups_7c7c3486
+    backup_utils_get_backup_path_fdf68a53 -->|calls| routes_settings_download_backup_c3c0fd99
+    backup_utils_ensure_backup_dir_e699ca9f -->|calls| backup_utils_backup_certificates_5c7eb98e
+    backup_utils_ensure_backup_dir_e699ca9f -->|calls| backup_utils_backup_database_abbe37e0
+    backup_utils_get_timestamp_4c31321d -->|calls| backup_utils_backup_certificates_5c7eb98e
+    backup_utils_get_timestamp_4c31321d -->|calls| backup_utils_backup_database_abbe37e0
+    backup_utils_cleanup_old_backups_d93a35a0 -->|calls| backup_utils_backup_certificates_5c7eb98e
+    backup_utils_cleanup_old_backups_d93a35a0 -->|calls| backup_utils_backup_database_abbe37e0
+    backup_utils_backup_certificates_5c7eb98e -->|calls| backup_utils_run_scheduled_backup_bfd0f822
+    backup_utils_backup_certificates_5c7eb98e -->|calls| routes_settings_backup_certs_287805b2
+    backup_utils_backup_database_abbe37e0 -->|calls| backup_utils_generate_sql_dump_636a3b1b
+    backup_utils_backup_database_abbe37e0 -->|calls| backup_utils_run_scheduled_backup_bfd0f822
+    backup_utils_backup_database_abbe37e0 -->|calls| routes_settings_backup_db_44041e01
+    backup_utils_generate_sql_dump_636a3b1b -->|calls| backup_utils_generate_create_table_b115d224
+    backup_utils_generate_sql_dump_636a3b1b -->|calls| backup_utils_generate_insert_statement_cac4f2d4
+    backup_utils_generate_create_table_b115d224 -->|calls| backup_utils_escape_sql_string_3d7543c3
+    backup_utils_generate_insert_statement_cac4f2d4 -->|calls| backup_utils_escape_sql_string_3d7543c3
+    backup_utils_list_backups_7c7c3486 -->|calls| backup_utils_format_file_size_57ed7a46
+    backup_utils_list_backups_7c7c3486 -->|calls| routes_settings_backup_7f384895
+    %% Omitted for readability: 20 nodes, 0 edges
+    class backup_utils_get_backup_path_fdf68a53 function;
+    class backup_utils_get_timestamp_4c31321d function;
+    class backup_utils_cleanup_old_backups_d93a35a0 function;
+    class backup_utils_ensure_backup_dir_e699ca9f function;
+    class backup_utils_generate_sql_dump_636a3b1b function;
+    class backup_utils_list_backups_7c7c3486 function;
+    class backup_utils_delete_backup_d42a9bea function;
+    class backup_utils_backup_certificates_5c7eb98e function;
+    class backup_utils_backup_database_abbe37e0 function;
+    class backup_utils_run_scheduled_backup_bfd0f822 function;
+    class backup_utils_generate_create_table_b115d224 function;
+    class backup_utils_generate_insert_statement_cac4f2d4 function;
+    class backup_utils_escape_sql_string_3d7543c3 function;
+    class backup_utils_format_file_size_57ed7a46 function;
+    class routes_settings_download_backup_c3c0fd99 function;
+    class routes_settings_backup_certs_287805b2 function;
+    class routes_settings_backup_db_44041e01 function;
+    class routes_settings_backup_7f384895 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>backup_utils.py</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>get_backup_path()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>cleanup_old_backups()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>delete_backup()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>download_backup()</code><br><small style="color:var(--muted)">routes/settings.py</small><br>+2 more</td>
+  <td>get_backup_path() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>ensure_backup_dir()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_backup_path()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>backup_certificates()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>backup_database()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>ensure_backup_dir() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>get_timestamp()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>backup_certificates()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>backup_database()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>get_timestamp() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>cleanup_old_backups()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_backup_path()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>backup_certificates()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>backup_database()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>cleanup_old_backups() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>backup_certificates()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>cleanup_old_backups()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>ensure_backup_dir()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>get_timestamp()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>backup_certs()</code><br><small style="color:var(--muted)">routes/settings.py</small><br><code>run_scheduled_backup()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>backup_certificates() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>backup_database()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>cleanup_old_backups()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>ensure_backup_dir()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>get_timestamp()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>backup_db()</code><br><small style="color:var(--muted)">routes/settings.py</small><br><code>generate_sql_dump()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>run_scheduled_backup()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>backup_database() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>generate_sql_dump()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>backup_database()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>generate_create_table()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>generate_insert_statement()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>generate_sql_dump() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>generate_create_table()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>generate_sql_dump()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>escape_sql_string()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>generate_create_table() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>generate_insert_statement()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>generate_sql_dump()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>escape_sql_string()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>generate_insert_statement() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>escape_sql_string()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>generate_create_table()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>generate_insert_statement()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>escape_sql_string() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>list_backups()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_backup_path()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><code>backup()</code><br><small style="color:var(--muted)">routes/settings.py</small><br><code>format_file_size()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>list_backups() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>delete_backup()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_backup_path()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>delete_backup() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>format_file_size()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>list_backups()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>format_file_size() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>run_scheduled_backup()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>backup_certificates()</code><br><small style="color:var(--muted)">backup_utils.py</small><br><code>backup_database()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>run_scheduled_backup() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>Backup utilities for SSL Certificate Manager. Supports certificate backup (ZIP)</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Backup utilities for SSL Certificate Manager. Supports certificate backup (ZIP).</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>Get the backup directory path from settings or use default.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Get the backup directory path from settings or use default..</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>Ensure the backup directory exists.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Ensure the backup directory exists..</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>Get current timestamp for backup filenames.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Get current timestamp for backup filenames..</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>Remove old backups keeping only the most recent MAX_BACKUPS.          Args:</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Remove old backups keeping only the most recent MAX_BACKUPS.          Args:.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>Create a ZIP backup of all certificate files.          Returns:         dict: {&#x27;</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Create a ZIP backup of all certificate files.          Returns:         dict: {&#x27;.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>Create a SQL backup of the database.     Supports both SQLite and MariaDB/MySQL.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Create a SQL backup of the database.     Supports both SQLite and MariaDB/MySQL..</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>Generate a MySQL/MariaDB compatible SQL dump from the database.     Works with b</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Generate a MySQL/MariaDB compatible SQL dump from the database.     Works with b.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>Generate CREATE TABLE statement for a model.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Generate CREATE TABLE statement for a model..</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>Generate INSERT statement for a record.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Generate INSERT statement for a record..</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>Escape a string for SQL insertion.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Escape a string for SQL insertion..</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>List all available backups.          Returns:         dict: {&#x27;cert_backups&#x27;: lis</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for List all available backups.          Returns:         dict: {&#x27;cert_backups&#x27;: lis.</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>Delete a specific backup file.          Args:         filename: Name of the back</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Delete a specific backup file.          Args:         filename: Name of the back.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>Format file size in human-readable format.</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Format file size in human-readable format..</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>Run scheduled backup based on settings.     Called by APScheduler at the configu</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Run scheduled backup based on settings.     Called by APScheduler at the configu.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>backup_utils.py</code></td><td>30 nodes</td></tr>
+<tr><td><code>routes/settings.py</code></td><td>8 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: calls x22, explains x19, contains x14. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 4. CLI & Skill Installers ====== -->
+<h2 id="cli-skills">4. CLI &amp; Skill Installers</h2>
+<p>CLI &amp; Skill Installers groups implementation around graphifyjs, opencode, plugins, graphifyplugin, mostly in .opencode/plugins/graphify.js. This section covers 2 nodes and 1 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: CLI &amp; Skill Installers (2 nodes, 1 edges)
+    plugins_graphify_ddefb849("graphify.js")
+    plugins_graphify_graphifyplugin_6ef8cf61("GraphifyPlugin()<br/><small>.opencode/plugins/graphify.js</small>")
+    plugins_graphify_ddefb849 -->|contains| plugins_graphify_graphifyplugin_6ef8cf61
+    class plugins_graphify_ddefb849 module;
+    class plugins_graphify_graphifyplugin_6ef8cf61 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>graphify.js</code><br><small style="color:var(--muted)">.opencode/plugins/graphify.js</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Builds dependency relationships and graph data.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>GraphifyPlugin()</code><br><small style="color:var(--muted)">.opencode/plugins/graphify.js</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Builds dependency relationships and graph data.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>.opencode/plugins/graphify.js</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 5. Ingestion & Updates ====== -->
+<h2 id="ingest-cache-update">5. Ingestion &amp; Updates</h2>
+<p>Ingestion &amp; Updates groups implementation around certificate, sectigo, utilspy, certificatespy, mostly in routes/certificates.py, sectigo_utils.py, cert_utils.py. This section covers 100 nodes and 123 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Ingestion &amp; Updates (100 nodes, 123 edges)
+    subgraph ingest_cache_update_cert_utils_py_7b8615cb["cert_utils.py"]
+        cert_utils_parse_certificate_b29ede15("parse_certificate()<br/><small>cert_utils.py</small>")
+        cert_utils_get_file_extension_b971aa28("get_file_extension()<br/><small>cert_utils.py</small>")
+        cert_utils_is_supported_file_35e520fb("is_supported_file()<br/><small>cert_utils.py</small>")
+        cert_utils_extract_certificate_chain_e1e0af2e("extract_certificate_chain()<br/><small>cert_utils.py</small>")
+        cert_utils_build_key_info_16b8c600("_build_key_info()<br/><small>cert_utils.py</small>")
+        cert_utils_extract_cert_details_d5009c90("_extract_cert_details()<br/><small>cert_utils.py</small>")
+        cert_utils_get_name_attr_81337ce9("_get_name_attr()<br/><small>cert_utils.py</small>")
+    end
+    subgraph ingest_cache_update_routes_certificates_py_2984f6ee["routes/certificates.py"]
+        routes_certificates_get_sectigo_temp_path_087db44d("_get_sectigo_temp_path()<br/><small>routes/certificates.py</small>")
+        routes_certificates_sectigo_fetch_certs_1e385a2a("sectigo_fetch_certs()<br/><small>routes/certificates.py</small>")
+        routes_certificates_add_cert_fe29ca61("add_cert()<br/><small>routes/certificates.py</small>")
+        routes_certificates_sectigo_save_cert_adb95231("sectigo_save_cert()<br/><small>routes/certificates.py</small>")
+        routes_certificates_view_cert_84570c8d("view_cert()<br/><small>routes/certificates.py</small>")
+        routes_certificates_cleanup_sectigo_temp_d3732016("_cleanup_sectigo_temp()<br/><small>routes/certificates.py</small>")
+        routes_certificates_sectigo_download_file_f48d380b("sectigo_download_file()<br/><small>routes/certificates.py</small>")
+    end
+    subgraph ingest_cache_update_models_py_3034ab71["models.py"]
+        models_certificate_f1cc002e("Certificate<br/><small>models.py</small>")
+        models_certificate_repr_377f7e61("__repr__()<br/><small>models.py</small>")
+        models_certificate_status_24a340e5("status()<br/><small>models.py</small>")
+    end
+    sectigo_utils_download_and_combine_certificates_21f13fc7("and combine certificates()<br/><small>sectigo_utils.py</small>")
+    cert_utils_get_file_extension_b971aa28 -->|calls| cert_utils_extract_certificate_chain_e1e0af2e
+    cert_utils_get_file_extension_b971aa28 -->|calls| cert_utils_is_supported_file_35e520fb
+    cert_utils_get_file_extension_b971aa28 -->|calls| cert_utils_parse_certificate_b29ede15
+    cert_utils_is_supported_file_35e520fb -->|calls| routes_certificates_add_cert_fe29ca61
+    cert_utils_parse_certificate_b29ede15 -->|calls| cert_utils_build_key_info_16b8c600
+    cert_utils_parse_certificate_b29ede15 -->|calls| cert_utils_extract_cert_details_d5009c90
+    cert_utils_parse_certificate_b29ede15 -->|calls| routes_certificates_add_cert_fe29ca61
+    cert_utils_parse_certificate_b29ede15 -->|calls| routes_certificates_sectigo_save_cert_adb95231
+    cert_utils_extract_cert_details_d5009c90 -->|calls| cert_utils_get_name_attr_81337ce9
+    cert_utils_get_name_attr_81337ce9 -->|calls| cert_utils_extract_certificate_chain_e1e0af2e
+    cert_utils_extract_certificate_chain_e1e0af2e -->|calls| routes_certificates_view_cert_84570c8d
+    models_certificate_f1cc002e -->|method| models_certificate_repr_377f7e61
+    models_certificate_f1cc002e -->|method| models_certificate_status_24a340e5
+    models_certificate_f1cc002e -->|calls| routes_certificates_add_cert_fe29ca61
+    models_certificate_f1cc002e -->|calls| routes_certificates_sectigo_save_cert_adb95231
+    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_cleanup_sectigo_temp_d3732016
+    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_sectigo_download_file_f48d380b
+    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
+    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_sectigo_save_cert_adb95231
+    routes_certificates_cleanup_sectigo_temp_d3732016 -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
+    routes_certificates_cleanup_sectigo_temp_d3732016 -->|calls| routes_certificates_sectigo_save_cert_adb95231
+    routes_certificates_sectigo_fetch_certs_1e385a2a -->|calls| sectigo_utils_download_and_combine_certificates_21f13fc7
+    %% Omitted for readability: 82 nodes, 0 edges
+    class cert_utils_parse_certificate_b29ede15 function;
+    class cert_utils_get_file_extension_b971aa28 function;
+    class cert_utils_is_supported_file_35e520fb function;
+    class cert_utils_extract_certificate_chain_e1e0af2e function;
+    class cert_utils_build_key_info_16b8c600 function;
+    class cert_utils_extract_cert_details_d5009c90 function;
+    class cert_utils_get_name_attr_81337ce9 function;
+    class routes_certificates_get_sectigo_temp_path_087db44d function;
+    class routes_certificates_sectigo_fetch_certs_1e385a2a function;
+    class routes_certificates_add_cert_fe29ca61 function;
+    class routes_certificates_sectigo_save_cert_adb95231 function;
+    class routes_certificates_view_cert_84570c8d function;
+    class routes_certificates_cleanup_sectigo_temp_d3732016 function;
+    class routes_certificates_sectigo_download_file_f48d380b function;
+    class models_certificate_f1cc002e klass;
+    class models_certificate_repr_377f7e61 function;
+    class models_certificate_status_24a340e5 function;
+    class sectigo_utils_download_and_combine_certificates_21f13fc7 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>get_file_extension()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>extract_certificate_chain()</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>is_supported_file()</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>parse_certificate()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td>get_file_extension() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>is_supported_file()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_file_extension()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><code>add_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>certificates.py</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td>is_supported_file() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>parse_certificate()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_file_extension()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><code>_build_key_info()</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>_extract_cert_details()</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>add_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br>+2 more</td>
+  <td>parse_certificate() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>_build_key_info()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>parse_certificate()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>_build_key_info() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>_extract_cert_details()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>parse_certificate()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><code>_get_name_attr()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td>_extract_cert_details() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>_get_name_attr()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>_extract_cert_details()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><code>extract_certificate_chain()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td>_get_name_attr() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>extract_certificate_chain()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>_get_name_attr()</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>get_file_extension()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><code>certificates.py</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>view_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td>extract_certificate_chain() node in cert_utils.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>Get normalized file extension.</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Get normalized file extension..</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>Check if the file extension is supported.</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Check if the file extension is supported..</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>Parse a certificate file and return its details.     Attempts multiple parsing s</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Parse a certificate file and return its details.     Attempts multiple parsing s.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>Build info dict for a private key file.</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Build info dict for a private key file..</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>Extract all details from an x509 certificate object.</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Extract all details from an x509 certificate object..</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>Safely get a name attribute from x509 Name object.</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Safely get a name attribute from x509 Name object..</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>Extract certificate chain from a certificate file.     Returns a list of certifi</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Extract certificate chain from a certificate file.     Returns a list of certifi.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>Certificate</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>add_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>certificates.py</code><br><small style="color:var(--muted)">routes/certificates.py</small><br>+2 more</td>
+  <td>Certificate node in models.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>Certificate</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>.status()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>Certificate</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.status() node in models.py.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>certificates.py</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>Certificate</code><br><small style="color:var(--muted)">models.py</small><br><code>extract_certificate_chain()</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>is_supported_file()</code><br><small style="color:var(--muted)">cert_utils.py</small><br>+1 more</td>
+  <td><code>and combine certificates()</code><br><small style="color:var(--muted)">sectigo_utils.py</small><br><code>extract_dns_sans()</code><br><small style="color:var(--muted)">sectigo_utils.py</small><br><code>SectigoDownloadError</code><br><small style="color:var(--muted)">sectigo_utils.py</small><br>+1 more</td>
+  <td>Module file in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>list_certs()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>list_certs() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>api_list()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-endpoint">API</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>api_list() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>add_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>Certificate</code><br><small style="color:var(--muted)">models.py</small><br><code>is_supported_file()</code><br><small style="color:var(--muted)">cert_utils.py</small><br><code>parse_certificate()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>add_cert() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>view_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>extract_certificate_chain()</code><br><small style="color:var(--muted)">cert_utils.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>view_cert() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>edit_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>edit_cert() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>delete_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>delete_cert() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>download_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>download_cert() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>_get_sectigo_temp_path()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>_cleanup_sectigo_temp()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>sectigo_download_file()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>sectigo_fetch_certs()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br>+1 more</td>
+  <td>_get_sectigo_temp_path() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>_cleanup_sectigo_temp()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>_get_sectigo_temp_path()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><code>sectigo_fetch_certs()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>sectigo_save_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td>_cleanup_sectigo_temp() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>sectigo_download()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>sectigo_download() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>sectigo_fetch_certs()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>_cleanup_sectigo_temp()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>_get_sectigo_temp_path()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><code>and combine certificates()</code><br><small style="color:var(--muted)">sectigo_utils.py</small><br><code>extract_dns_sans()</code><br><small style="color:var(--muted)">sectigo_utils.py</small><br><code>validate_ssl_id()</code><br><small style="color:var(--muted)">sectigo_utils.py</small></td>
+  <td>sectigo_fetch_certs() node in routes/certificates.py.</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>sectigo_save_cert()</code><br><small style="color:var(--muted)">routes/certificates.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>_cleanup_sectigo_temp()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>_get_sectigo_temp_path()</code><br><small style="color:var(--muted)">routes/certificates.py</small><br><code>Certificate</code><br><small style="color:var(--muted)">models.py</small><br>+1 more</td>
+  <td>No direct outbound edge</td>
+  <td>sectigo_save_cert() node in routes/certificates.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>routes/certificates.py</code></td><td>28 nodes</td></tr>
+<tr><td><code>sectigo_utils.py</code></td><td>16 nodes</td></tr>
+<tr><td><code>cert_utils.py</code></td><td>14 nodes</td></tr>
+<tr><td><code>.github/copilot-instructions.md</code></td><td>11 nodes</td></tr>
+<tr><td><code>README.md</code></td><td>6 nodes</td></tr>
+<tr><td><code>models.py</code></td><td>3 nodes</td></tr>
+<tr><td><code>docker-compose.yaml</code></td><td>2 nodes</td></tr>
+<tr><td><code>templates/base.html</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: explains x40, calls x27, contains x20, references x19. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 6. Serving API ====== -->
+<h2 id="serve-api">6. Serving API</h2>
+<p>Serving API groups implementation around routes, csrpy, modelspy, csr, mostly in routes/csr.py, models.py, routes/settings.py. This section covers 55 nodes and 71 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Serving API (55 nodes, 71 edges)
+    subgraph serve_api_models_py_8e3e093d["models.py"]
+        models_setting_eeb7985d("Setting<br/><small>models.py</small>")
+        models_alertrule_4b3a1dbe("AlertRule<br/><small>models.py</small>")
+        models_csrconfig_506ad0f0("CSRConfig<br/><small>models.py</small>")
+        models_csrrequest_84da9691("CSRRequest<br/><small>models.py</small>")
+        models_5ba2688d("models.py")
+        models_alertrule_repr_841b8594("__repr__()<br/><small>models.py</small>")
+        models_seed_defaults_781767f1("_seed_defaults()<br/><small>models.py</small>")
+        models_setting_repr_97b3be73("__repr__()<br/><small>models.py</small>")
+        models_csrconfig_repr_a67865cc("__repr__()<br/><small>models.py</small>")
+        models_csrrequest_repr_01e7f193("__repr__()<br/><small>models.py</small>")
+        models_init_db_9a563c93("init_db()<br/><small>models.py</small>")
+    end
+    subgraph serve_api_routes_csr_py_f53e8ee5["routes/csr.py"]
+        routes_csr_get_csr_storage_path_92cd047c("get_csr_storage_path()<br/><small>routes/csr.py</small>")
+        routes_csr_save_config_bb9f6e45("save_config()<br/><small>routes/csr.py</small>")
+        routes_csr_generate_csr_a8a81d0c("generate_csr()<br/><small>routes/csr.py</small>")
+        routes_csr_ensure_csr_directory_90d3994b("ensure_csr_directory()<br/><small>routes/csr.py</small>")
+        routes_csr_index_043796be("index()<br/><small>routes/csr.py</small>")
+        routes_csr_get_default_key_path_32f50c06("get_default_key_path()<br/><small>routes/csr.py</small>")
+        routes_csr_generate_cnf_content_15e15f57("_generate_cnf_content()<br/><small>routes/csr.py</small>")
+    end
+    models_alertrule_4b3a1dbe -->|method| models_alertrule_repr_841b8594
+    models_alertrule_4b3a1dbe -->|calls| models_seed_defaults_781767f1
+    models_setting_eeb7985d -->|calls| models_seed_defaults_781767f1
+    models_setting_eeb7985d -->|method| models_setting_repr_97b3be73
+    models_csrconfig_506ad0f0 -->|method| models_csrconfig_repr_a67865cc
+    models_csrconfig_506ad0f0 -->|calls| routes_csr_save_config_bb9f6e45
+    models_csrrequest_84da9691 -->|method| models_csrrequest_repr_01e7f193
+    models_csrrequest_84da9691 -->|calls| routes_csr_generate_csr_a8a81d0c
+    models_init_db_9a563c93 -->|calls| models_seed_defaults_781767f1
+    routes_csr_get_csr_storage_path_92cd047c -->|calls| routes_csr_ensure_csr_directory_90d3994b
+    routes_csr_get_csr_storage_path_92cd047c -->|calls| routes_csr_index_043796be
+    routes_csr_get_default_key_path_32f50c06 -->|calls| routes_csr_index_043796be
+    routes_csr_ensure_csr_directory_90d3994b -->|calls| routes_csr_generate_csr_a8a81d0c
+    routes_csr_ensure_csr_directory_90d3994b -->|calls| routes_csr_save_config_bb9f6e45
+    routes_csr_save_config_bb9f6e45 -->|calls| routes_csr_generate_cnf_content_15e15f57
+    routes_csr_generate_csr_a8a81d0c -->|calls| routes_csr_generate_cnf_content_15e15f57
+    %% Omitted for readability: 37 nodes, 0 edges
+    class models_setting_eeb7985d klass;
+    class models_alertrule_4b3a1dbe klass;
+    class models_csrconfig_506ad0f0 klass;
+    class models_csrrequest_84da9691 klass;
+    class models_5ba2688d module;
+    class models_alertrule_repr_841b8594 function;
+    class models_seed_defaults_781767f1 function;
+    class models_setting_repr_97b3be73 function;
+    class models_csrconfig_repr_a67865cc function;
+    class models_csrrequest_repr_01e7f193 function;
+    class models_init_db_9a563c93 function;
+    class routes_csr_get_csr_storage_path_92cd047c function;
+    class routes_csr_save_config_bb9f6e45 function;
+    class routes_csr_generate_csr_a8a81d0c function;
+    class routes_csr_ensure_csr_directory_90d3994b function;
+    class routes_csr_index_043796be function;
+    class routes_csr_get_default_key_path_32f50c06 function;
+    class routes_csr_generate_cnf_content_15e15f57 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>models.py</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>csr.py</code><br><small style="color:var(--muted)">routes/csr.py</small><br><code>settings.py</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td>Module file in models.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>AlertRule</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>_seed_defaults()</code><br><small style="color:var(--muted)">models.py</small><br><code>settings.py</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td>AlertRule node in models.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AlertRule</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>Setting</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>_seed_defaults()</code><br><small style="color:var(--muted)">models.py</small><br><code>csr.py</code><br><small style="color:var(--muted)">routes/csr.py</small><br>+1 more</td>
+  <td>Setting node in models.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>Setting</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>CSRConfig</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>csr.py</code><br><small style="color:var(--muted)">routes/csr.py</small><br><code>save_config()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>CSRConfig</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>CSRRequest</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>csr.py</code><br><small style="color:var(--muted)">routes/csr.py</small><br><code>generate_csr()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>CSRRequest node in models.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>CSRRequest</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>init_db()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>_seed_defaults()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>init_db() node in models.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>_seed_defaults()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AlertRule</code><br><small style="color:var(--muted)">models.py</small><br><code>init_db()</code><br><small style="color:var(--muted)">models.py</small><br><code>Setting</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>_seed_defaults() node in models.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>CSR Configuration template model.</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for CSR Configuration template model..</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>CSR Request model to track generated CSRs.</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for CSR Request model to track generated CSRs..</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>Initialize database and create tables.</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Initialize database and create tables..</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>Seed default settings and alert rules if they don&#x27;t exist.</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Seed default settings and alert rules if they don&#x27;t exist..</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>csr.py</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>CSRConfig</code><br><small style="color:var(--muted)">models.py</small><br><code>CSRRequest</code><br><small style="color:var(--muted)">models.py</small><br><code>models.py</code><br><small style="color:var(--muted)">models.py</small><br>+1 more</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>get_csr_storage_path()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>ensure_csr_directory()</code><br><small style="color:var(--muted)">routes/csr.py</small><br><code>index()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>Supports retrieval-augmented Q&amp;A or streaming chat.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>get_default_key_path()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>index()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>get_default_key_path() node in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>ensure_csr_directory()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_csr_storage_path()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><code>generate_csr()</code><br><small style="color:var(--muted)">routes/csr.py</small><br><code>save_config()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>ensure_csr_directory() node in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>index()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>get_csr_storage_path()</code><br><small style="color:var(--muted)">routes/csr.py</small><br><code>get_default_key_path()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>index() node in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>list_configs()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>save_config()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>CSRConfig</code><br><small style="color:var(--muted)">models.py</small><br><code>ensure_csr_directory()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><code>_generate_cnf_content()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>get_config()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>delete_config()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>generate_csr()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>CSRRequest</code><br><small style="color:var(--muted)">models.py</small><br><code>ensure_csr_directory()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><code>_generate_cnf_content()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>generate_csr() node in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>view_csr()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>view_csr() node in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>delete_csr()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>delete_csr() node in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>_generate_cnf_content()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>generate_csr()</code><br><small style="color:var(--muted)">routes/csr.py</small><br><code>save_config()</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>_generate_cnf_content() node in routes/csr.py.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>CSR (Certificate Signing Request) generation routes.</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for CSR (Certificate Signing Request) generation routes..</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>Get the CSR storage path from settings.</code><br><small style="color:var(--muted)">routes/csr.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Get the CSR storage path from settings..</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>routes/csr.py</code></td><td>26 nodes</td></tr>
+<tr><td><code>models.py</code></td><td>15 nodes</td></tr>
+<tr><td><code>routes/settings.py</code></td><td>14 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x24, explains x24, calls x12, imports x5. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 7. Tests & Fixtures ====== -->
+<h2 id="tests-fixtures">7. Tests &amp; Fixtures</h2>
+<p>Tests &amp; Fixtures groups implementation around test, send, notification, notificationspy, mostly in notifications.py, routes/settings.py. This section covers 8 nodes and 6 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Tests &amp; Fixtures (8 nodes, 6 edges)
+    subgraph tests_fixtures_notifications_py_bf8e0c4e["notifications.py"]
+        notifications_send_test_notification_ae89bcf9("send_test_notification()<br/><small>notifications.py</small>")
+        notifications_test_smtp_connection_2364b393("test_smtp_connection()<br/><small>notifications.py</small>")
+        notifications_rationale_492_2c68c03a("Send a test notification through a chan...<br/><small>notifications.py</small>")
+        notifications_rationale_558_a803b326("Test SMTP connection and send a test em...<br/><small>notifications.py</small>")
+    end
+    subgraph tests_fixtures_routes_settings_py_407abf4e["routes/settings.py"]
+        routes_settings_test_notification_62d66edc("test_notification()<br/><small>routes/settings.py</small>")
+        routes_settings_test_smtp_e2c266d6("test_smtp()<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_315_a0dc1dca("Send a test notification.<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_324_ec8a2fb2("Test SMTP settings without saving the c...<br/><small>routes/settings.py</small>")
+    end
+    notifications_send_test_notification_ae89bcf9 -->|calls| routes_settings_test_notification_62d66edc
+    notifications_test_smtp_connection_2364b393 -->|calls| routes_settings_test_smtp_e2c266d6
+    class notifications_send_test_notification_ae89bcf9 function;
+    class notifications_test_smtp_connection_2364b393 test;
+    class notifications_rationale_492_2c68c03a concept;
+    class notifications_rationale_558_a803b326 concept;
+    class routes_settings_test_notification_62d66edc test;
+    class routes_settings_test_smtp_e2c266d6 test;
+    class routes_settings_rationale_315_a0dc1dca concept;
+    class routes_settings_rationale_324_ec8a2fb2 concept;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>send_test_notification()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>test_notification()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>Send a test notification through a channel to verify configuration.</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Send a test notification through a channel to verify configuration..</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>test_notification()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td><code>send_test_notification()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>Send a test notification.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Send a test notification..</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>test_smtp_connection()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>test_smtp()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>Test SMTP connection and send a test email without requiring a saved channel.</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Test SMTP connection and send a test email without requiring a saved channel..</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>test_smtp()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Test</span></td>
+  <td><code>test_smtp_connection()</code><br><small style="color:var(--muted)">notifications.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>Verifies imports, entry points, or version behavior.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>Test SMTP settings without saving the channel first.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Test SMTP settings without saving the channel first..</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>notifications.py</code></td><td>4 nodes</td></tr>
+<tr><td><code>routes/settings.py</code></td><td>4 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: explains x4, calls x2. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 8. Application Core ====== -->
+<h2 id="application-core">8. Application Core</h2>
+<p>Application Core groups implementation around migrate, apppy, add, migrations, mostly in app.py, migrations/migrate_add_theme.py, migrations/migrate_alert_instances.py. This section covers 20 nodes and 26 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Application Core (20 nodes, 26 edges)
+    subgraph application_core_app_py_b5de0c50["app.py"]
+        app_7d104347("app.py")
+        app_create_app_f1ffb2d6("create_app()<br/><small>app.py</small>")
+        app_setup_scheduler_819fabf4("_setup_scheduler()<br/><small>app.py</small>")
+        app_load_user_e909c923("load_user()<br/><small>app.py</small>")
+        app_rationale_32_9d7c3cce("Load user by ID for Flask-Login.<br/><small>app.py</small>")
+        app_rationale_1_5b4cfc21("SSL Certificate Manager Application A F...<br/><small>app.py</small>")
+        app_rationale_87_6506d29c("Setup background scheduler for certific...<br/><small>app.py</small>")
+    end
+    subgraph application_core_migrations_migrate_add_theme_py_39b7d843["migrations/migrate_add_theme.py"]
+        migrations_migrate_add_theme_migrate_database_58e3f91e("migrate_database()<br/><small>migrations/migrate_add_theme.py</small>")
+        migrations_migrate_add_theme_eacd5491("migrate_add_theme.py")
+        migrations_migrate_add_theme_rationale_17_e917fef0("Add theme column to users table if it d...<br/><small>migrations/migrate_add_theme.py</small>")
+    end
+    subgraph application_core_backup_utils_py_62abe029["backup_utils.py"]
+        backup_utils_get_backup_schedule_0fb856b0("get_backup_schedule()<br/><small>backup_utils.py</small>")
+        backup_utils_rationale_508_1b9bea7a("Get backup schedule settings. Returns:...<br/><small>backup_utils.py</small>")
+    end
+    subgraph application_core_config_py_aa0bf12d["config.py"]
+        config_config_94e2c630("Config<br/><small>config.py</small>")
+        config_dfba7aad("config.py")
+    end
+    subgraph application_core_logger_py_0bc74e11["logger.py"]
+        logger_setup_logging_b4943cb5("setup_logging()<br/><small>logger.py</small>")
+        logger_rationale_26_13170367("Configure application-wide logging. Cal...<br/><small>logger.py</small>")
+    end
+    subgraph application_core_migrations_migrate_alert_instan_ca6b5d78["migrations/migrate_alert_instances.py"]
+        migrations_migrate_alert_instances_b24ce351("migrate_alert_instances.py")
+        migrations_migrate_alert_instances_migrate_2a9f5265("migrate()<br/><small>migrations/migrate_alert_instances.py</small>")
+    end
+    app_create_app_f1ffb2d6 -->|calls| app_setup_scheduler_819fabf4
+    app_create_app_f1ffb2d6 -->|calls| logger_setup_logging_b4943cb5
+    app_setup_scheduler_819fabf4 -->|calls| backup_utils_get_backup_schedule_0fb856b0
+    config_config_94e2c630 -->|calls| migrations_migrate_add_theme_migrate_database_58e3f91e
+    app_7d104347 -->|imports| backup_utils_get_backup_schedule_0fb856b0
+    app_7d104347 -->|imports| config_dfba7aad
+    app_7d104347 -->|imports| config_config_94e2c630
+    app_7d104347 -->|imports| logger_setup_logging_b4943cb5
+    config_dfba7aad -->|imports| migrations_migrate_add_theme_eacd5491
+    config_dfba7aad -->|imports| migrations_migrate_alert_instances_b24ce351
+    config_config_94e2c630 -->|imports| migrations_migrate_add_theme_eacd5491
+    config_config_94e2c630 -->|imports| migrations_migrate_alert_instances_b24ce351
+    %% Omitted for readability: 2 nodes, 0 edges
+    class app_7d104347 module;
+    class app_create_app_f1ffb2d6 function;
+    class app_setup_scheduler_819fabf4 function;
+    class app_load_user_e909c923 function;
+    class app_rationale_32_9d7c3cce concept;
+    class app_rationale_1_5b4cfc21 concept;
+    class app_rationale_87_6506d29c concept;
+    class migrations_migrate_add_theme_migrate_database_58e3f91e function;
+    class migrations_migrate_add_theme_eacd5491 module;
+    class migrations_migrate_add_theme_rationale_17_e917fef0 concept;
+    class backup_utils_get_backup_schedule_0fb856b0 function;
+    class backup_utils_rationale_508_1b9bea7a concept;
+    class config_config_94e2c630 klass;
+    class config_dfba7aad module;
+    class logger_setup_logging_b4943cb5 function;
+    class logger_rationale_26_13170367 concept;
+    class migrations_migrate_alert_instances_b24ce351 module;
+    class migrations_migrate_alert_instances_migrate_2a9f5265 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>app.py</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>Config</code><br><small style="color:var(--muted)">config.py</small><br><code>config.py</code><br><small style="color:var(--muted)">config.py</small><br><code>get_backup_schedule()</code><br><small style="color:var(--muted)">backup_utils.py</small><br>+1 more</td>
+  <td>Module file in app.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>load_user()</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>load_user() node in app.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>create_app()</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>_setup_scheduler()</code><br><small style="color:var(--muted)">app.py</small><br><code>setup_logging()</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td>create_app() node in app.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>_setup_scheduler()</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>create_app()</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><code>get_backup_schedule()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td>_setup_scheduler() node in app.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>SSL Certificate Manager Application A Flask-based web application for managing S</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for SSL Certificate Manager Application A Flask-based web application for managing S.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>Load user by ID for Flask-Login.</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Load user by ID for Flask-Login..</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>Setup background scheduler for certificate alert checks and scheduled backups.</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Setup background scheduler for certificate alert checks and scheduled backups..</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>get_backup_schedule()</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>_setup_scheduler()</code><br><small style="color:var(--muted)">app.py</small><br><code>app.py</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>get_backup_schedule() node in backup_utils.py.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>Get backup schedule settings.          Returns:         dict with schedule setti</code><br><small style="color:var(--muted)">backup_utils.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Get backup schedule settings.          Returns:         dict with schedule setti.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>config.py</code><br><small style="color:var(--muted)">config.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>app.py</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><code>migrate_add_theme.py</code><br><small style="color:var(--muted)">migrations/migrate_add_theme.py</small><br><code>migrate_alert_instances.py</code><br><small style="color:var(--muted)">migrations/migrate_alert_instances.py</small></td>
+  <td>Module file in config.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>Config</code><br><small style="color:var(--muted)">config.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td><code>app.py</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td><code>migrate_add_theme.py</code><br><small style="color:var(--muted)">migrations/migrate_add_theme.py</small><br><code>migrate_alert_instances.py</code><br><small style="color:var(--muted)">migrations/migrate_alert_instances.py</small><br><code>migrate_database()</code><br><small style="color:var(--muted)">migrations/migrate_add_theme.py</small></td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>setup_logging()</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>app.py</code><br><small style="color:var(--muted)">app.py</small><br><code>create_app()</code><br><small style="color:var(--muted)">app.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>setup_logging() node in logger.py.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>Configure application-wide logging.     Call once during app creation, *after* D</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Configure application-wide logging.     Call once during app creation, *after* D.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>migrate_add_theme.py</code><br><small style="color:var(--muted)">migrations/migrate_add_theme.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>Config</code><br><small style="color:var(--muted)">config.py</small><br><code>config.py</code><br><small style="color:var(--muted)">config.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>Module file in migrations/migrate_add_theme.py.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>migrate_database()</code><br><small style="color:var(--muted)">migrations/migrate_add_theme.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>Config</code><br><small style="color:var(--muted)">config.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>migrate_database() node in migrations/migrate_add_theme.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>Database Migration: Add theme column to users table  This script adds the theme</code><br><small style="color:var(--muted)">migrations/migrate_add_theme.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Database Migration: Add theme column to users table  This script adds the theme.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>Add theme column to users table if it doesn&#x27;t exist.</code><br><small style="color:var(--muted)">migrations/migrate_add_theme.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Add theme column to users table if it doesn&#x27;t exist..</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>migrate_alert_instances.py</code><br><small style="color:var(--muted)">migrations/migrate_alert_instances.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>Config</code><br><small style="color:var(--muted)">config.py</small><br><code>config.py</code><br><small style="color:var(--muted)">config.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>Module file in migrations/migrate_alert_instances.py.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>migrate()</code><br><small style="color:var(--muted)">migrations/migrate_alert_instances.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>migrate() node in migrations/migrate_alert_instances.py.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>Apply migration to add CASCADE delete constraints.</code><br><small style="color:var(--muted)">migrations/migrate_alert_instances.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Apply migration to add CASCADE delete constraints..</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>app.py</code></td><td>7 nodes</td></tr>
+<tr><td><code>migrations/migrate_add_theme.py</code></td><td>4 nodes</td></tr>
+<tr><td><code>migrations/migrate_alert_instances.py</code></td><td>3 nodes</td></tr>
+<tr><td><code>backup_utils.py</code></td><td>2 nodes</td></tr>
+<tr><td><code>config.py</code></td><td>2 nodes</td></tr>
+<tr><td><code>logger.py</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: explains x8, contains x6, imports x5, calls x4. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 9. Model Design Rationale ====== -->
+<h2 id="model-design-rationale">9. Model Design Rationale</h2>
+<p>Model Design Rationale groups implementation around authpy, routes, modelspy, password, mostly in routes/auth.py, models.py. This section covers 17 nodes and 16 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Model Design Rationale (17 nodes, 16 edges)
+    subgraph model_design_rationale_routes_auth_py_7935a461["routes/auth.py"]
+        routes_auth_35bb1149("auth.py")
+        routes_auth_login_1ff2488b("login()<br/><small>routes/auth.py</small>")
+        routes_auth_logout_2b6f442d("logout()<br/><small>routes/auth.py</small>")
+        routes_auth_profile_a478652b("profile()<br/><small>routes/auth.py</small>")
+        routes_auth_verify_password_732a5d18("verify_password()<br/><small>routes/auth.py</small>")
+        routes_auth_rationale_1_a7f089a8("Authentication routes.<br/><small>routes/auth.py</small>")
+        routes_auth_rationale_51_52ff0494("Logout the current user.<br/><small>routes/auth.py</small>")
+        routes_auth_rationale_61_e8058763("User profile page for changing username...<br/><small>routes/auth.py</small>")
+        routes_auth_rationale_129_02abab76("Verify current user's password for sess...<br/><small>routes/auth.py</small>")
+    end
+    subgraph model_design_rationale_models_py_976755bc["models.py"]
+        models_user_dbb2e2bb("User<br/><small>models.py</small>")
+        models_user_check_password_790c07f8("check_password()<br/><small>models.py</small>")
+        models_user_repr_d5115a7a("__repr__()<br/><small>models.py</small>")
+        models_user_set_password_cb315b36("set_password()<br/><small>models.py</small>")
+        models_rationale_30_cd14f649("Check if the provided password matches...<br/><small>models.py</small>")
+        models_rationale_26_aee9a2ee("Hash and set the user's password.<br/><small>models.py</small>")
+        models_rationale_11_358786df("User model for authentication.<br/><small>models.py</small>")
+    end
+    usermixin_0b21304e("UserMixin")
+    models_user_dbb2e2bb -->|method| models_user_check_password_790c07f8
+    models_user_dbb2e2bb -->|method| models_user_repr_d5115a7a
+    models_user_dbb2e2bb -->|method| models_user_set_password_cb315b36
+    models_user_dbb2e2bb -->|imports| routes_auth_35bb1149
+    class routes_auth_35bb1149 module;
+    class routes_auth_login_1ff2488b function;
+    class routes_auth_logout_2b6f442d function;
+    class routes_auth_profile_a478652b function;
+    class routes_auth_verify_password_732a5d18 function;
+    class routes_auth_rationale_1_a7f089a8 concept;
+    class routes_auth_rationale_51_52ff0494 concept;
+    class routes_auth_rationale_61_e8058763 concept;
+    class routes_auth_rationale_129_02abab76 concept;
+    class models_user_dbb2e2bb klass;
+    class models_user_check_password_790c07f8 function;
+    class models_user_repr_d5115a7a function;
+    class models_user_set_password_cb315b36 function;
+    class models_rationale_30_cd14f649 concept;
+    class models_rationale_26_aee9a2ee concept;
+    class models_rationale_11_358786df concept;
+    class usermixin_0b21304e klass;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>User</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>auth.py</code><br><small style="color:var(--muted)">routes/auth.py</small><br><code>check_password()</code><br><small style="color:var(--muted)">models.py</small><br>+1 more</td>
+  <td>User node in models.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>UserMixin</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>UserMixin node in project.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>.set_password()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>User</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.set_password() node in models.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>.check_password()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>User</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.check_password() node in models.py.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>User</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>User model for authentication.</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for User model for authentication..</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>Hash and set the user&#x27;s password.</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Hash and set the user&#x27;s password..</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>Check if the provided password matches the hash.</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Check if the provided password matches the hash..</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>auth.py</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td><code>User</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>Module file in routes/auth.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>login()</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>login() node in routes/auth.py.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>logout()</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>logout() node in routes/auth.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>profile()</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>profile() node in routes/auth.py.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>verify_password()</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>verify_password() node in routes/auth.py.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>Authentication routes.</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Authentication routes..</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>Logout the current user.</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Logout the current user..</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>User profile page for changing username/password.</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for User profile page for changing username/password..</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>Verify current user&#x27;s password for session unlock.</code><br><small style="color:var(--muted)">routes/auth.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Verify current user&#x27;s password for session unlock..</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>routes/auth.py</code></td><td>9 nodes</td></tr>
+<tr><td><code>models.py</code></td><td>7 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: explains x7, contains x4, method x3, inherits x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 10. Logger Reconfiguration ====== -->
+<h2 id="logger-reconfiguration">10. Logger Reconfiguration</h2>
+<p>Logger Reconfiguration groups implementation around settings, loggerpy, save, routes, mostly in logger.py, routes/settings.py. This section covers 4 nodes and 3 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Logger Reconfiguration (4 nodes, 3 edges)
+    subgraph logger_reconfiguration_logger_py_4d765909["logger.py"]
+        logger_reconfigure_logging_391bff13("reconfigure_logging()<br/><small>logger.py</small>")
+        logger_rationale_89_1e14c184("Swap the file handler at runtime when t...<br/><small>logger.py</small>")
+    end
+    subgraph logger_reconfiguration_routes_settings_py_953d23d8["routes/settings.py"]
+        routes_settings_save_settings_6005b308("save_settings()<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_27_94d27d1a("Save general settings.<br/><small>routes/settings.py</small>")
+    end
+    logger_reconfigure_logging_391bff13 -->|calls| routes_settings_save_settings_6005b308
+    class logger_reconfigure_logging_391bff13 function;
+    class logger_rationale_89_1e14c184 concept;
+    class routes_settings_save_settings_6005b308 function;
+    class routes_settings_rationale_27_94d27d1a concept;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>reconfigure_logging()</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>save_settings()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>Swap the file handler at runtime when the user changes settings.     Returns (su</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Swap the file handler at runtime when the user changes settings.     Returns (su.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>save_settings()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>reconfigure_logging()</code><br><small style="color:var(--muted)">logger.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>save_settings() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>Save general settings.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Save general settings..</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>logger.py</code></td><td>2 nodes</td></tr>
+<tr><td><code>routes/settings.py</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: explains x2, calls x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 11. Notification Channels ====== -->
+<h2 id="notification-channels">11. Notification Channels</h2>
+<p>Notification Channels groups implementation around modelspy, notification, routes, settingspy, mostly in models.py, routes/settings.py. This section covers 4 nodes and 3 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Notification Channels (4 nodes, 3 edges)
+    subgraph notification_channels_models_py_e852a5b6["models.py"]
+        models_notificationchannel_8eb1db4d("NotificationChannel<br/><small>models.py</small>")
+        models_notificationchannel_repr_99b219de("__repr__()<br/><small>models.py</small>")
+    end
+    subgraph notification_channels_routes_settings_py_a523683d["routes/settings.py"]
+        routes_settings_save_notification_300e3199("save_notification()<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_253_0d1451fb("Add or update a notification channel.<br/><small>routes/settings.py</small>")
+    end
+    models_notificationchannel_8eb1db4d -->|method| models_notificationchannel_repr_99b219de
+    models_notificationchannel_8eb1db4d -->|calls| routes_settings_save_notification_300e3199
+    class models_notificationchannel_8eb1db4d klass;
+    class models_notificationchannel_repr_99b219de function;
+    class routes_settings_save_notification_300e3199 function;
+    class routes_settings_rationale_253_0d1451fb concept;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>NotificationChannel</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small><br><code>save_notification()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td>NotificationChannel node in models.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>NotificationChannel</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>save_notification()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>NotificationChannel</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>save_notification() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>Add or update a notification channel.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Add or update a notification channel..</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>models.py</code></td><td>2 nodes</td></tr>
+<tr><td><code>routes/settings.py</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: method x1, calls x1, explains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 12. Test Certificate Generation ====== -->
+<h2 id="test-certificate-generation">12. Test Certificate Generation</h2>
+<p>Test Certificate Generation groups implementation around generate, certssh, cert, script, mostly in generate_certs.sh. This section covers 4 nodes and 5 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Test Certificate Generation (4 nodes, 5 edges)
+    home_vsl8_documents_git_github_ssl_certs_managem_e3f733c9("generate_certs.sh script<br/><small>generate_certs.sh</small>")
+    generate_certs_generate_cert_b6f9ab5b("generate_cert()<br/><small>generate_certs.sh</small>")
+    generate_certs_generate_cert_with_san_70dd98c7("generate_cert_with_san()<br/><small>generate_certs.sh</small>")
+    generate_certs_b5871b7f("generate_certs.sh")
+    home_vsl8_documents_git_github_ssl_certs_managem_e3f733c9 -->|calls| generate_certs_generate_cert_b6f9ab5b
+    home_vsl8_documents_git_github_ssl_certs_managem_e3f733c9 -->|calls| generate_certs_generate_cert_with_san_70dd98c7
+    class home_vsl8_documents_git_github_ssl_certs_managem_e3f733c9 function;
+    class generate_certs_generate_cert_b6f9ab5b function;
+    class generate_certs_generate_cert_with_san_70dd98c7 function;
+    class generate_certs_b5871b7f function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>generate_certs.sh</code><br><small style="color:var(--muted)">generate_certs.sh</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>generate_certs.sh node in generate_certs.sh.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>generate_certs.sh script</code><br><small style="color:var(--muted)">generate_certs.sh</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>generate_cert()</code><br><small style="color:var(--muted)">generate_certs.sh</small><br><code>generate_cert_with_san()</code><br><small style="color:var(--muted)">generate_certs.sh</small></td>
+  <td>generate_certs.sh script node in generate_certs.sh.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>generate_cert()</code><br><small style="color:var(--muted)">generate_certs.sh</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>generate_certs.sh script</code><br><small style="color:var(--muted)">generate_certs.sh</small></td>
+  <td>No direct outbound edge</td>
+  <td>generate_cert() node in generate_certs.sh.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>generate_cert_with_san()</code><br><small style="color:var(--muted)">generate_certs.sh</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>generate_certs.sh script</code><br><small style="color:var(--muted)">generate_certs.sh</small></td>
+  <td>No direct outbound edge</td>
+  <td>generate_cert_with_san() node in generate_certs.sh.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>generate_certs.sh</code></td><td>4 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: defines x2, calls x2, contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 13. Alert Instances ====== -->
+<h2 id="alert-instances">13. Alert Instances</h2>
+<p>Alert Instances groups implementation around modelspy, alerts, alertinstance, repr, mostly in models.py. This section covers 3 nodes and 2 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Alert Instances (3 nodes, 2 edges)
+    models_alertinstance_e81a01ce("AlertInstance<br/><small>models.py</small>")
+    models_alertinstance_repr_a7d0f1bc("__repr__()<br/><small>models.py</small>")
+    models_rationale_188_a3682548("Tracks active/firing alerts for certifi...<br/><small>models.py</small>")
+    models_alertinstance_e81a01ce -->|method| models_alertinstance_repr_a7d0f1bc
+    class models_alertinstance_e81a01ce klass;
+    class models_alertinstance_repr_a7d0f1bc function;
+    class models_rationale_188_a3682548 concept;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>AlertInstance</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>AlertInstance node in models.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>.__repr__()</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>AlertInstance</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td>No direct outbound edge</td>
+  <td>.__repr__() node in models.py.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>Tracks active/firing alerts for certificates.     Allows pausing/resuming alerts</code><br><small style="color:var(--muted)">models.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Tracks active/firing alerts for certificates.     Allows pausing/resuming alerts.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>models.py</code></td><td>3 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: method x1, explains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 14. Docker Entrypoint ====== -->
+<h2 id="docker-entrypoint">14. Docker Entrypoint</h2>
+<p>Docker Entrypoint groups implementation around docker, entrypointsh, script, mostly in docker-entrypoint.sh. This section covers 2 nodes and 1 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Docker Entrypoint (2 nodes, 1 edges)
+    docker_entrypoint_5b477df1("docker-entrypoint.sh")
+    home_vsl8_documents_git_github_ssl_certs_managem_b56deb85("docker-entrypoint.sh script<br/><small>docker-entrypoint.sh</small>")
+    docker_entrypoint_5b477df1 -->|contains| home_vsl8_documents_git_github_ssl_certs_managem_b56deb85
+    class docker_entrypoint_5b477df1 function;
+    class home_vsl8_documents_git_github_ssl_certs_managem_b56deb85 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>docker-entrypoint.sh</code><br><small style="color:var(--muted)">docker-entrypoint.sh</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>docker-entrypoint.sh node in docker-entrypoint.sh.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>docker-entrypoint.sh script</code><br><small style="color:var(--muted)">docker-entrypoint.sh</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>docker-entrypoint.sh script node in docker-entrypoint.sh.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>docker-entrypoint.sh</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 15. JavaScript UI ====== -->
+<h2 id="javascript-ui">15. JavaScript UI</h2>
+<p>JavaScript UI groups implementation around appjs, static, showtoast, mostly in static/js/app.js. This section covers 2 nodes and 1 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: JavaScript UI (2 nodes, 1 edges)
+    js_app_a411cffc("app.js")
+    js_app_showtoast_5be69317("showToast()<br/><small>static/js/app.js</small>")
+    js_app_a411cffc -->|contains| js_app_showtoast_5be69317
+    class js_app_a411cffc module;
+    class js_app_showtoast_5be69317 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>app.js</code><br><small style="color:var(--muted)">static/js/app.js</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>app.js node in static/js/app.js.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>showToast()</code><br><small style="color:var(--muted)">static/js/app.js</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>showToast() node in static/js/app.js.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>static/js/app.js</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x1. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 16. Other ====== -->
+<h2 id="other">16. Other</h2>
+<p>Other groups implementation around routes, settingspy, alert, instance, mostly in routes/settings.py, templates/base.html, templates/auth/login.html. This section covers 22 nodes and 9 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Other (22 nodes, 9 edges)
+    subgraph other_routes_settings_py_f089c023["routes/settings.py"]
+        routes_settings_acknowledge_alert_instance_b8971f9c("acknowledge_alert_instance()<br/><small>routes/settings.py</small>")
+        routes_settings_alerts_7d12c9d6("alerts()<br/><small>routes/settings.py</small>")
+        routes_settings_general_7066d539("general()<br/><small>routes/settings.py</small>")
+        routes_settings_notifications_12b8a9ec("notifications()<br/><small>routes/settings.py</small>")
+        routes_settings_pause_alert_instance_f1fe9162("pause_alert_instance()<br/><small>routes/settings.py</small>")
+        routes_settings_resume_alert_instance_f4167c73("resume_alert_instance()<br/><small>routes/settings.py</small>")
+        routes_settings_save_alert_a6f1c806("save_alert()<br/><small>routes/settings.py</small>")
+        routes_settings_toggle_alert_bc98d60a("toggle_alert()<br/><small>routes/settings.py</small>")
+        routes_settings_save_backup_schedule_9e104cb1("save_backup_schedule()<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_170_a53db56d("Acknowledge an alert instance (won't se...<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_72_20c9e843("Add or update an alert rule.<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_57_44566224("Alert rules configuration page.<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_19_24697835("General settings page.<br/><small>routes/settings.py</small>")
+        routes_settings_rationale_245_e5b148ef("Notification channels page.<br/><small>routes/settings.py</small>")
+    end
+    pkg_ssl_cert_manager_2e9f83f0("ssl-cert-manager<br/><small>pyproject.toml</small>")
+    routes_init_3ce369c3("__init__.py")
+    login_html_gradient_login_c07b159f("Gradient Login UI<br/><small>templates/auth/login.html</small>")
+    base_html_sidebar_navigation_94f532ae("Sidebar Navigation<br/><small>templates/base.html</small>")
+    routes_settings_general_7066d539 -->|explains| routes_settings_rationale_19_24697835
+    routes_settings_alerts_7d12c9d6 -->|explains| routes_settings_rationale_57_44566224
+    routes_settings_save_alert_a6f1c806 -->|explains| routes_settings_rationale_72_20c9e843
+    routes_settings_acknowledge_alert_instance_b8971f9c -->|explains| routes_settings_rationale_170_a53db56d
+    routes_settings_notifications_12b8a9ec -->|explains| routes_settings_rationale_245_e5b148ef
+    %% Omitted for readability: 4 nodes, 0 edges
+    class routes_settings_acknowledge_alert_instance_b8971f9c function;
+    class routes_settings_alerts_7d12c9d6 function;
+    class routes_settings_general_7066d539 function;
+    class routes_settings_notifications_12b8a9ec function;
+    class routes_settings_pause_alert_instance_f1fe9162 function;
+    class routes_settings_resume_alert_instance_f4167c73 function;
+    class routes_settings_save_alert_a6f1c806 function;
+    class routes_settings_toggle_alert_bc98d60a function;
+    class routes_settings_save_backup_schedule_9e104cb1 function;
+    class routes_settings_rationale_170_a53db56d concept;
+    class routes_settings_rationale_72_20c9e843 concept;
+    class routes_settings_rationale_57_44566224 concept;
+    class routes_settings_rationale_19_24697835 concept;
+    class routes_settings_rationale_245_e5b148ef concept;
+    class pkg_ssl_cert_manager_2e9f83f0 module;
+    class routes_init_3ce369c3 module;
+    class login_html_gradient_login_c07b159f klass;
+    class base_html_sidebar_navigation_94f532ae klass;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>acknowledge_alert_instance()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>acknowledge_alert_instance() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>Acknowledge an alert instance (won&#x27;t send notifications today).</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Acknowledge an alert instance (won&#x27;t send notifications today)..</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>alerts()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>alerts() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>Alert rules configuration page.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Alert rules configuration page..</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>general()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>general() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>General settings page.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for General settings page..</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>notifications()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>notifications() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>Notification channels page.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Notification channels page..</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>pause_alert_instance()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>pause_alert_instance() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>Pause a firing alert instance.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Pause a firing alert instance..</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>toggle_alert()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>toggle_alert() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>Toggle an alert rule on/off.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Toggle an alert rule on/off..</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>resume_alert_instance()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>resume_alert_instance() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>Resume a paused alert instance.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Resume a paused alert instance..</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>save_backup_schedule()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>save_backup_schedule() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>Save backup schedule settings.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Save backup schedule settings..</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>save_alert()</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>save_alert() node in routes/settings.py.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>Add or update an alert rule.</code><br><small style="color:var(--muted)">routes/settings.py</small></td>
+  <td><span class="tag tag-func">Concept</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Design note for Add or update an alert rule..</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>Sidebar Navigation</code><br><small style="color:var(--muted)">templates/base.html</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Organizes documentation pages, navigation, or content lookup.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>Gradient Login UI</code><br><small style="color:var(--muted)">templates/auth/login.html</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Gradient Login UI node in templates/auth/login.html.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>ssl-cert-manager</code><br><small style="color:var(--muted)">pyproject.toml</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>ssl-cert-manager node in pyproject.toml.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>__init__.py</code><br><small style="color:var(--muted)">routes/__init__.py</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Module file in routes/__init__.py.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>routes/settings.py</code></td><td>18 nodes</td></tr>
+<tr><td><code>pyproject.toml</code></td><td>1 nodes</td></tr>
+<tr><td><code>routes/__init__.py</code></td><td>1 nodes</td></tr>
+<tr><td><code>templates/auth/login.html</code></td><td>1 nodes</td></tr>
+<tr><td><code>templates/base.html</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: explains x9. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<h2 id="hyperedges">Group Relationships (Hyperedges)</h2>
+<div class="grid">
+
+  <div class="card">
+    <h4>Architecture Design Rationale</h4>
+    <p><code>form</code> — 5 participants</p>
+    <ul>
+      <li><code>github_copilot_instructions_flask_app_factory</code></li>
+      <li><code>github_copilot_instructions_no_service_layer</code></li>
+      <li><code>github_copilot_instructions_split_persistence</code></li>
+      <li><code>github_copilot_instructions_settings_table_pattern</code></li>
+      <li><code>github_copilot_instructions_server_rendered_ui</code></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Core Application Features</h4>
+    <p><code>participate_in</code> — 5 participants</p>
+    <ul>
+      <li><code>readme_md_certificate_management</code></li>
+      <li><code>readme_md_alert_system</code></li>
+      <li><code>readme_md_format_conversion</code></li>
+      <li><code>readme_md_backup_restore</code></li>
+      <li><code>readme_md_csr_generation</code></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Frontend UI Components</h4>
+    <p><code>participate_in</code> — 5 participants</p>
+    <ul>
+      <li><code>base_html_bootstrap_ui</code></li>
+      <li><code>list_html_datatables</code></li>
+      <li><code>list_html_sweetalert_delete</code></li>
+      <li><code>add_html_drag_drop_upload</code></li>
+      <li><code>dashboard_html_expiry_chart</code></li>
+    </ul>
+  </div>
+</div>
+<hr>
+<h2 id="stats">Project Statistics</h2>
+
+<div class="grid">
+  <div class="card">
+    <h4>Graph</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><td>Nodes</td><td>341</td></tr>
+      <tr><td>Edges</td><td>521</td></tr>
+      <tr><td>Hyperedges</td><td>3</td></tr>
+      <tr><td>Communities</td><td>34</td></tr>
+      <tr><td>Documented Sections</td><td>15</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Edge Confidence</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><td>EXTRACTED</td><td>497</td></tr>
+      <tr><td>INFERRED</td><td>24</td></tr>
+      <tr><td>AMBIGUOUS</td><td>0</td></tr>
+    </table>
+  </div>
+</div>
+
+<div style="text-align:center; padding:40px 0; color: var(--muted); font-size:0.9rem;">
+  <p>ssl-certs-management — Architecture Documentation</p>
+  <p>Generated: 2026-06-26 12:27 UTC · graphify callflow-html</p>
+</div>
+
+</div><!-- .container -->
+
+<script>
+(function () {
+  const mermaidConfig = {
+    startOnLoad: false,
+    theme: 'dark',
+    securityLevel: 'loose',
+    flowchart: { htmlLabels: true, useMaxWidth: true },
+    themeVariables: {
+      primaryColor: '#1e293b',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#38bdf8',
+      secondaryColor: '#0f172a',
+      tertiaryColor: '#334155',
+      lineColor: '#64748b',
+      textColor: '#e2e8f0',
+    }
+  };
+
+  mermaid.initialize(mermaidConfig);
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function enhanceMermaidDiagrams() {
+    document.querySelectorAll('.mermaid').forEach((container) => {
+      if (container.dataset.zoomReady === 'true') return;
+      const svg = container.querySelector('svg');
+      if (!svg) return;
+
+      container.dataset.zoomReady = 'true';
+      container.classList.add('is-enhanced');
+
+      const viewport = document.createElement('div');
+      viewport.className = 'mermaid-viewport';
+      svg.parentNode.insertBefore(viewport, svg);
+      viewport.appendChild(svg);
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'mermaid-toolbar';
+      toolbar.innerHTML = [
+        '<button type="button" data-action="zoom-out" title="Zoom out">-</button>',
+        '<span class="zoom-level" data-role="level">100%</span>',
+        '<button type="button" data-action="zoom-in" title="Zoom in">+</button>',
+        '<button type="button" data-action="fit" title="Fit width">Fit</button>',
+        '<button type="button" data-action="reset" title="Reset view">Reset</button>'
+      ].join('');
+      container.insertBefore(toolbar, viewport);
+
+      const state = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0, originX: 0, originY: 0 };
+      const level = toolbar.querySelector('[data-role="level"]');
+
+      function applyTransform() {
+        svg.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+        level.textContent = `${Math.round(state.scale * 100)}%`;
+      }
+
+      function zoomBy(delta) {
+        state.scale = clamp(state.scale + delta, 0.25, 3);
+        applyTransform();
+      }
+
+      function reset() {
+        state.scale = 1;
+        state.x = 0;
+        state.y = 0;
+        applyTransform();
+      }
+
+      function fitWidth() {
+        const rawWidth = svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width
+          ? svg.viewBox.baseVal.width
+          : svg.getBoundingClientRect().width / state.scale;
+        if (!rawWidth) {
+          reset();
+          return;
+        }
+        state.scale = clamp((viewport.clientWidth - 48) / rawWidth, 0.25, 1.4);
+        state.x = 0;
+        state.y = 0;
+        applyTransform();
+      }
+
+      toolbar.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const action = button.dataset.action;
+        if (action === 'zoom-in') zoomBy(0.15);
+        if (action === 'zoom-out') zoomBy(-0.15);
+        if (action === 'fit') fitWidth();
+        if (action === 'reset') reset();
+      });
+
+      viewport.addEventListener('wheel', (event) => {
+        if (!event.ctrlKey && !event.metaKey) return;
+        event.preventDefault();
+        zoomBy(event.deltaY < 0 ? 0.1 : -0.1);
+      }, { passive: false });
+
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        state.dragging = true;
+        state.startX = event.clientX;
+        state.startY = event.clientY;
+        state.originX = state.x;
+        state.originY = state.y;
+        viewport.classList.add('is-dragging');
+        viewport.setPointerCapture(event.pointerId);
+      });
+
+      viewport.addEventListener('pointermove', (event) => {
+        if (!state.dragging) return;
+        state.x = state.originX + event.clientX - state.startX;
+        state.y = state.originY + event.clientY - state.startY;
+        applyTransform();
+      });
+
+      function endDrag(event) {
+        if (!state.dragging) return;
+        state.dragging = false;
+        viewport.classList.remove('is-dragging');
+        if (viewport.hasPointerCapture(event.pointerId)) {
+          viewport.releasePointerCapture(event.pointerId);
+        }
+      }
+
+      viewport.addEventListener('pointerup', endDrag);
+      viewport.addEventListener('pointercancel', endDrag);
+      applyTransform();
+    });
+  }
+
+  function renderMermaid() {
+    const result = mermaid.run
+      ? mermaid.run({ querySelector: '.mermaid' })
+      : Promise.resolve();
+    Promise.resolve(result)
+      .then(enhanceMermaidDiagrams)
+      .catch((error) => {
+        console.error('Mermaid render failed:', error);
+        enhanceMermaidDiagrams();
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderMermaid);
+  } else {
+    renderMermaid();
+  }
+})();
+</script>
+
+</body>
+</html>
