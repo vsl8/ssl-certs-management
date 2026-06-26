@@ -3,34 +3,75 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.egg-info/
 .Python
 .venv/
 venv/
 ENV/
 env/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+.tox/
+htmlcov/
+dist/
+build/
+*.whl
 
-# IDE
+# IDE and Editor
 .idea/
 .vscode/
 *.swp
 *.swo
+*.bak
+*.tmp
+*~
+.DS_Store
 
 # Git
 .git/
 .gitignore
+.gitattributes
 
 # Docker
 Dockerfile
 docker-compose*.yaml
+docker-compose*.yml
 .dockerignore
+DOCKER_UPDATE.md
 
-# Local data (will be mounted as volumes)
+# Local runtime data (will be mounted as volumes)
 instance/
 logs/
 uploads/
 
-# Misc
+# Knowledge graph output (not needed at runtime)
+graphify-out/
+
+# Test certificates and data
+test_certs/
+
+# Documentation (adjust if needed in container)
+README.md
+CLAUDE.md
+AGENTS.md
 *.md
-*.log
-.env
+
+# Environment and secrets
 .env.*
+.env.example
+
+# Logs
+*.log
+
+# Backup files
+*.sql
+*.db-journal
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Other
+*.orig
