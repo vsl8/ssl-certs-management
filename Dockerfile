@@ -53,4 +53,5 @@ EXPOSE 5000
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Run with gunicorn for production
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "app:create_app()"]
+# Using 1 worker to prevent duplicate schedulers (each worker spawns its own APScheduler)
+CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "4", "app:create_app()"]
