@@ -87,6 +87,8 @@ class Certificate(db.Model):
     # Relationships
     alert_logs = db.relationship('AlertLog', backref='certificate', lazy=True,
                                  cascade='all, delete-orphan')
+    alert_instances = db.relationship('AlertInstance', backref='certificate', lazy=True,
+                                      cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Certificate {self.common_name}>'
@@ -121,6 +123,8 @@ class AlertRule(db.Model):
     notification_channel = db.relationship('NotificationChannel', backref='alert_rules')
     alert_logs = db.relationship('AlertLog', backref='alert_rule', lazy=True,
                                  cascade='all, delete-orphan')
+    alert_instances = db.relationship('AlertInstance', backref='alert_rule', lazy=True,
+                                      cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<AlertRule {self.name} - {self.days_before_expiry} days>'
@@ -168,8 +172,8 @@ class AlertLog(db.Model):
     __tablename__ = 'alert_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    certificate_id = db.Column(db.Integer, db.ForeignKey('certificates.id'), nullable=False)
-    alert_rule_id = db.Column(db.Integer, db.ForeignKey('alert_rules.id'), nullable=True)
+    certificate_id = db.Column(db.Integer, db.ForeignKey('certificates.id', ondelete='CASCADE'), nullable=False)
+    alert_rule_id = db.Column(db.Integer, db.ForeignKey('alert_rules.id', ondelete='CASCADE'), nullable=True)
     channel_type = db.Column(db.String(50), nullable=True)
     message = db.Column(db.Text, nullable=True)
     status = db.Column(db.String(20), default='sent')  # sent, failed
@@ -188,8 +192,8 @@ class AlertInstance(db.Model):
     __tablename__ = 'alert_instances'
 
     id = db.Column(db.Integer, primary_key=True)
-    certificate_id = db.Column(db.Integer, db.ForeignKey('certificates.id'), nullable=False)
-    alert_rule_id = db.Column(db.Integer, db.ForeignKey('alert_rules.id'), nullable=False)
+    certificate_id = db.Column(db.Integer, db.ForeignKey('certificates.id', ondelete='CASCADE'), nullable=False)
+    alert_rule_id = db.Column(db.Integer, db.ForeignKey('alert_rules.id', ondelete='CASCADE'), nullable=False)
     
     # Alert state: firing, paused, resolved, acknowledged
     state = db.Column(db.String(20), default='firing', nullable=False)
@@ -208,10 +212,6 @@ class AlertInstance(db.Model):
     
     # Notes
     notes = db.Column(db.Text, nullable=True)
-    
-    # Relationships
-    certificate = db.relationship('Certificate', backref='alert_instances', foreign_keys=[certificate_id])
-    alert_rule = db.relationship('AlertRule', backref='alert_instances', foreign_keys=[alert_rule_id])
     
     # Unique constraint: one active alert per cert+rule combination
     __table_args__ = (
