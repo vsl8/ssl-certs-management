@@ -1,0 +1,22 @@
+{
+  "0": "Conversion & Notification Core",
+  "1": "Certificate Management",
+  "2": "Database Models & CSR",
+  "3": "Backup System",
+  "4": "UI Components",
+  "5": "Application Core",
+  "6": "Model Design Rationale",
+  "7": "Sectigo Integration",
+  "8": "Settings Routes",
+  "9": "Test Certificate Generation",
+  "10": "Logger Reconfiguration",
+  "14": "Theme System",
+  "15": "Alert Instances",
+  "16": "Docker Entrypoint",
+  "17": "JavaScript UI",
+  "18": "Graphify Plugin",
+  "30": "Sidebar Navigation",
+  "31": "Login UI",
+  "32": "Package Metadata",
+  "33": "Routes Init"
+}
