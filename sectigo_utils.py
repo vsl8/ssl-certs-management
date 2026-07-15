@@ -10,8 +10,8 @@ from logger import get_logger
 
 log = get_logger('sectigo_utils')
 
-# Sectigo base URL for InCommon
-SECTIGO_BASE_URL = "https://cert-manager.com/customer/InCommon/ssl"
+# Sectigo base URL for MGB
+SECTIGO_BASE_URL = "https://cert-manager.com/customer/mgb/ssl"
 
 
 class SectigoDownloadError(Exception):
@@ -82,7 +82,7 @@ def download_server_certificate(ssl_id: str) -> bytes:
 
 def download_intermediate_certificate(ssl_id: str) -> bytes:
     """
-    Download the intermediate/CA certificate (x509IO - Intermediate Only).
+    Download the intermediate/CA certificate (pemia - PEM Intermediate + Anchor).
     
     Args:
         ssl_id: The Sectigo SSL certificate ID
@@ -90,7 +90,7 @@ def download_intermediate_certificate(ssl_id: str) -> bytes:
     Returns:
         Intermediate certificate data as bytes
     """
-    return download_certificate(ssl_id, 'x509IO')
+    return download_certificate(ssl_id, 'pemia')
 
 
 def download_and_combine_certificates(ssl_id: str, private_key_path: str = None) -> tuple:
