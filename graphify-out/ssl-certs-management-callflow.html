@@ -60,7 +60,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
 <div class="container">
 
 <h1>ssl-certs-management — Complete Call Flow &amp; Architecture Documentation</h1>
-<p class="subtitle">Generated from graphify knowledge graph: 623 nodes, 770 edges, 72 communities. Commit: a7b3f40</p>
+<p class="subtitle">Generated from graphify knowledge graph: 623 nodes, 770 edges, 72 communities. Commit: ad2b78a</p>
 
 <div class="nav">
     <a href="#overview">Architecture Overview</a>
@@ -124,8 +124,8 @@ flowchart LR
     NOTIFICATION_CHANNELS_BE47DAA2 -->|contains x9| OTHER_D0941E68
     EXTRACT_PIPELINE_5F350230 -->|calls x9| SERVE_API_35EC8E86
     SERVE_API_35EC8E86 -->|contains x9| OTHER_D0941E68
+    SERVE_API_35EC8E86 -->|contains x8| INGEST_CACHE_UPDATE_FF457338
     SERVE_API_35EC8E86 -->|contains x8| ANALYSIS_CLUSTERING_C79796DA
-    INGEST_CACHE_UPDATE_FF457338 -->|imports x6| SERVE_API_35EC8E86
     NOTIFICATION_CHANNELS_BE47DAA2 -->|contains x6| BACKUP_SYSTEM_AE44F22E
     NOTIFICATION_CHANNELS_BE47DAA2 -->|contains x6| ANALYSIS_CLUSTERING_C79796DA
     COMMUNITY_36_F6473446 -->|imports x6| SERVE_API_35EC8E86
@@ -1886,12 +1886,12 @@ flowchart LR
     %% Section: Ingestion &amp; Updates (115 nodes, 111 edges)
     subgraph ingest_cache_update_sectigo_utils_py_46c81ef4["sectigo_utils.py"]
         sectigo_utils_download_certificate_b492066c("download_certificate()<br/><small>sectigo_utils.py</small>")
-        sectigo_utils_extract_dns_sans_ea3c6457("extract_dns_sans()<br/><small>sectigo_utils.py</small>")
         sectigo_utils_sectigodownloaderror_0deda1a7("SectigoDownloadError<br/><small>sectigo_utils.py</small>")
-        sectigo_utils_validate_ssl_id_1a7baca7("validate_ssl_id()<br/><small>sectigo_utils.py</small>")
         sectigo_utils_download_intermediate_certificate_7c9fe165("download intermediate certificate()<br/><small>sectigo_utils.py</small>")
-        sectigo_utils_download_server_certificate_a81caba8("download server certificate()<br/><small>sectigo_utils.py</small>")
         sectigo_utils_download_and_combine_certificates_21f13fc7("and combine certificates()<br/><small>sectigo_utils.py</small>")
+        sectigo_utils_extract_dns_sans_ea3c6457("extract_dns_sans()<br/><small>sectigo_utils.py</small>")
+        sectigo_utils_validate_ssl_id_1a7baca7("validate_ssl_id()<br/><small>sectigo_utils.py</small>")
+        sectigo_utils_download_server_certificate_a81caba8("download server certificate()<br/><small>sectigo_utils.py</small>")
     end
     subgraph ingest_cache_update_README_md_9befc232["README.md"]
         readme_md_backup_restore_5a0b608a("Backup and Restore<br/><small>README.md</small>")
@@ -1901,40 +1901,40 @@ flowchart LR
     end
     subgraph ingest_cache_update_routes_certificates_py_2984f6ee["routes/certificates.py"]
         routes_certificates_get_sectigo_temp_path_087db44d("_get_sectigo_temp_path()<br/><small>routes/certificates.py</small>")
-        routes_certificates_cleanup_sectigo_temp_d3732016("_cleanup_sectigo_temp()<br/><small>routes/certificates.py</small>")
         routes_certificates_sectigo_fetch_certs_1e385a2a("sectigo_fetch_certs()<br/><small>routes/certificates.py</small>")
+        routes_certificates_cleanup_sectigo_temp_d3732016("_cleanup_sectigo_temp()<br/><small>routes/certificates.py</small>")
         routes_certificates_sectigo_download_file_f48d380b("sectigo_download_file()<br/><small>routes/certificates.py</small>")
     end
     claude_md_database_migration_system_b02dd77f("Database Migration System<br/><small>CLAUDE.md</small>")
     exception_5d42ad17("Exception")
     docker_compose_yaml_volume_persistence_2bcc50b8("Docker Volume Persistence<br/><small>docker-compose.yaml</small>")
+    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_cleanup_sectigo_temp_d3732016
+    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_sectigo_download_file_f48d380b
+    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
+    routes_certificates_cleanup_sectigo_temp_d3732016 -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
+    routes_certificates_sectigo_fetch_certs_1e385a2a -->|calls| sectigo_utils_download_and_combine_certificates_21f13fc7
+    routes_certificates_sectigo_fetch_certs_1e385a2a -->|calls| sectigo_utils_extract_dns_sans_ea3c6457
+    routes_certificates_sectigo_fetch_certs_1e385a2a -->|calls| sectigo_utils_validate_ssl_id_1a7baca7
     sectigo_utils_sectigodownloaderror_0deda1a7 -->|calls| sectigo_utils_download_certificate_b492066c
     sectigo_utils_download_certificate_b492066c -->|calls| sectigo_utils_download_intermediate_certificate_7c9fe165
     sectigo_utils_download_certificate_b492066c -->|calls| sectigo_utils_download_server_certificate_a81caba8
     sectigo_utils_download_server_certificate_a81caba8 -->|calls| sectigo_utils_download_and_combine_certificates_21f13fc7
     sectigo_utils_download_intermediate_certificate_7c9fe165 -->|calls| sectigo_utils_download_and_combine_certificates_21f13fc7
-    sectigo_utils_download_and_combine_certificates_21f13fc7 -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
-    sectigo_utils_extract_dns_sans_ea3c6457 -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
-    sectigo_utils_validate_ssl_id_1a7baca7 -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
-    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_cleanup_sectigo_temp_d3732016
-    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_sectigo_download_file_f48d380b
-    routes_certificates_get_sectigo_temp_path_087db44d -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
-    routes_certificates_cleanup_sectigo_temp_d3732016 -->|calls| routes_certificates_sectigo_fetch_certs_1e385a2a
     %% Omitted for readability: 97 nodes, 0 edges
     class sectigo_utils_download_certificate_b492066c function;
-    class sectigo_utils_extract_dns_sans_ea3c6457 function;
     class sectigo_utils_sectigodownloaderror_0deda1a7 klass;
-    class sectigo_utils_validate_ssl_id_1a7baca7 function;
     class sectigo_utils_download_intermediate_certificate_7c9fe165 function;
-    class sectigo_utils_download_server_certificate_a81caba8 function;
     class sectigo_utils_download_and_combine_certificates_21f13fc7 function;
+    class sectigo_utils_extract_dns_sans_ea3c6457 function;
+    class sectigo_utils_validate_ssl_id_1a7baca7 function;
+    class sectigo_utils_download_server_certificate_a81caba8 function;
     class readme_md_backup_restore_5a0b608a ui;
     class readme_md_format_conversion_a2ade5d1 klass;
     class readme_md_certificate_management_848284b9 klass;
     class readme_md_notification_channels_f4338519 klass;
     class routes_certificates_get_sectigo_temp_path_087db44d function;
-    class routes_certificates_cleanup_sectigo_temp_d3732016 function;
     class routes_certificates_sectigo_fetch_certs_1e385a2a function;
+    class routes_certificates_cleanup_sectigo_temp_d3732016 function;
     class routes_certificates_sectigo_download_file_f48d380b function;
     class claude_md_database_migration_system_b02dd77f klass;
     class exception_5d42ad17 klass;
@@ -4274,7 +4274,7 @@ flowchart LR
 
 <div style="text-align:center; padding:40px 0; color: var(--muted); font-size:0.9rem;">
   <p>ssl-certs-management — Architecture Documentation</p>
-  <p>Generated: 2026-07-15 13:20 UTC · graphify callflow-html</p>
+  <p>Generated: 2026-07-15 13:13 UTC · graphify callflow-html</p>
 </div>
 
 </div><!-- .container -->
