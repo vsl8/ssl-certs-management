@@ -182,14 +182,14 @@
       "norm_label": "download the server certificate (x509co - certificate only).          args:"
     },
     {
-      "label": "Download the intermediate/CA certificate (pemia - PEM Intermediate + Anchor).",
+      "label": "Download the intermediate/CA certificate (x509IO - Root/Intermediates only, PEM",
       "file_type": "rationale",
       "source_file": "sectigo_utils.py",
       "source_location": "L84",
       "_origin": "ast",
       "id": "sectigo_utils_rationale_84",
       "community": 7,
-      "norm_label": "download the intermediate/ca certificate (pemia - pem intermediate + anchor)."
+      "norm_label": "download the intermediate/ca certificate (x509io - root/intermediates only, pem"
     },
     {
       "label": "Download server and intermediate certificates from Sectigo and combine them.",
@@ -14409,5 +14409,5 @@
       "source_file": "templates/base.html"
     }
   ],
-  "built_at_commit": "39f1f679cf4ff269711417a97cf676e55369600f"
+  "built_at_commit": "d1bb304c37da32e26792d0a1cf211a947385c4d0"
 }

@@ -1,7 +1,7 @@
-# Graph Report - ssl-certs-management  (2026-07-13)
+# Graph Report - ssl-certs-management  (2026-07-15)
 
 ## Corpus Check
-- 61 files · ~67,378 words
+- 61 files · ~67,380 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ad2b78a7`
+- Built from commit: `39f1f679`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -304,7 +304,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.013) - this node is a cross-community bridge._
 - **Why does `User` connect `Community 35` to `Community 24`, `Backup System`, `Model Design Rationale`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **What connects `SSL Certificate Manager Application A Flask-based web application for managing S`, `Load user by ID for Flask-Login.`, `Setup background scheduler for certificate alert checks and scheduled backups.` to the rest of the system?**
+- **What connects `Sectigo Certificate Download Utilities. Downloads SSL certificates from Sectigo`, `Custom exception for Sectigo download errors.`, `Download a certificate from Sectigo using SSL ID.          Args:         ssl_id:` to the rest of the system?**
   _359 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Conversion & Notification Core` be split into smaller, more focused modules?**
   _Cohesion score 0.12987012987012986 - nodes in this community are weakly interconnected._

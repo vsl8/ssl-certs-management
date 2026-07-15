@@ -1,7 +1,7 @@
 # Graph Report - ssl-certs-management  (2026-07-15)
 
 ## Corpus Check
-- 61 files · ~67,380 words
+- 61 files · ~67,410 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `39f1f679`
+- Built from commit: `d1bb304c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
