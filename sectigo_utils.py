@@ -82,7 +82,7 @@ def download_server_certificate(ssl_id: str) -> bytes:
 
 def download_intermediate_certificate(ssl_id: str) -> bytes:
     """
-    Download the intermediate/CA certificate (pemia - PEM Intermediate + Anchor).
+    Download the intermediate/CA certificate (x509IO - Root/Intermediates only, PEM encoded).
     
     Args:
         ssl_id: The Sectigo SSL certificate ID
@@ -90,7 +90,7 @@ def download_intermediate_certificate(ssl_id: str) -> bytes:
     Returns:
         Intermediate certificate data as bytes
     """
-    return download_certificate(ssl_id, 'pemia')
+    return download_certificate(ssl_id, 'x509IO')
 
 
 def download_and_combine_certificates(ssl_id: str, private_key_path: str = None) -> tuple:
