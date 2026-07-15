@@ -411,6 +411,16 @@ def extract_certificate_chain(file_path, password=None):
         except Exception as e:
             log.warning('Could not extract chain cert details: %s', e)
     
+    # Deduplicate by fingerprint (preserving first occurrence)
+    seen = set()
+    unique_chain = []
+    for entry in chain:
+        fp = entry['fingerprint_sha256']
+        if fp not in seen:
+            seen.add(fp)
+            unique_chain.append(entry)
+    chain = unique_chain
+
     # Sort chain: End Entity first, then Intermediates, then Root
     def sort_key(c):
         if c['cert_type'] == 'End Entity':
