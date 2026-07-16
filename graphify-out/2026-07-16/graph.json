@@ -52,294 +52,14 @@
   },
   "nodes": [
     {
-      "label": "certificates.py",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "routes_certificates",
-      "community": 1,
-      "norm_label": "certificates.py"
-    },
-    {
-      "label": "list_certs()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L19",
-      "_origin": "ast",
-      "id": "routes_certificates_list_certs",
-      "community": 1,
-      "norm_label": "list_certs()"
-    },
-    {
-      "label": "api_list()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L26",
-      "_origin": "ast",
-      "id": "routes_certificates_api_list",
-      "community": 1,
-      "norm_label": "api_list()"
-    },
-    {
-      "label": "add_cert()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L64",
-      "_origin": "ast",
-      "id": "routes_certificates_add_cert",
-      "community": 36,
-      "norm_label": "add_cert()"
-    },
-    {
-      "label": "view_cert()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L168",
-      "_origin": "ast",
-      "id": "routes_certificates_view_cert",
-      "community": 35,
-      "norm_label": "view_cert()"
-    },
-    {
-      "label": "edit_cert()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L191",
-      "_origin": "ast",
-      "id": "routes_certificates_edit_cert",
-      "community": 1,
-      "norm_label": "edit_cert()"
-    },
-    {
-      "label": "delete_cert()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L213",
-      "_origin": "ast",
-      "id": "routes_certificates_delete_cert",
-      "community": 1,
-      "norm_label": "delete_cert()"
-    },
-    {
-      "label": "download_cert()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L239",
-      "_origin": "ast",
-      "id": "routes_certificates_download_cert",
-      "community": 1,
-      "norm_label": "download_cert()"
-    },
-    {
-      "label": "_get_sectigo_temp_path()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L266",
-      "_origin": "ast",
-      "id": "routes_certificates_get_sectigo_temp_path",
-      "community": 1,
-      "norm_label": "_get_sectigo_temp_path()"
-    },
-    {
-      "label": "_cleanup_sectigo_temp()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L272",
-      "_origin": "ast",
-      "id": "routes_certificates_cleanup_sectigo_temp",
-      "community": 1,
-      "norm_label": "_cleanup_sectigo_temp()"
-    },
-    {
-      "label": "sectigo_download()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L285",
-      "_origin": "ast",
-      "id": "routes_certificates_sectigo_download",
-      "community": 1,
-      "norm_label": "sectigo_download()"
-    },
-    {
-      "label": "sectigo_fetch_certs()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L292",
-      "_origin": "ast",
-      "id": "routes_certificates_sectigo_fetch_certs",
-      "community": 1,
-      "norm_label": "sectigo_fetch_certs()"
-    },
-    {
-      "label": "sectigo_save_cert()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L367",
-      "_origin": "ast",
-      "id": "routes_certificates_sectigo_save_cert",
-      "community": 1,
-      "norm_label": "sectigo_save_cert()"
-    },
-    {
-      "label": "sectigo_download_file()",
-      "file_type": "code",
-      "source_file": "routes/certificates.py",
-      "source_location": "L556",
-      "_origin": "ast",
-      "id": "routes_certificates_sectigo_download_file",
-      "community": 1,
-      "norm_label": "sectigo_download_file()"
-    },
-    {
-      "label": "Certificate CRUD routes.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_1",
-      "community": 1,
-      "norm_label": "certificate crud routes."
-    },
-    {
-      "label": "List all certificates (page, DataTables fetches via API).",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L20",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_20",
-      "community": 1,
-      "norm_label": "list all certificates (page, datatables fetches via api)."
-    },
-    {
-      "label": "API endpoint for DataTables.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L27",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_27",
-      "community": 1,
-      "norm_label": "api endpoint for datatables."
-    },
-    {
-      "label": "Add a new certificate.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L65",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_65",
-      "community": 36,
-      "norm_label": "add a new certificate."
-    },
-    {
-      "label": "View certificate details.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L169",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_169",
-      "community": 35,
-      "norm_label": "view certificate details."
-    },
-    {
-      "label": "Edit certificate metadata (notes, tags).",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L192",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_192",
-      "community": 1,
-      "norm_label": "edit certificate metadata (notes, tags)."
-    },
-    {
-      "label": "Delete a certificate.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L214",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_214",
-      "community": 1,
-      "norm_label": "delete a certificate."
-    },
-    {
-      "label": "Download a certificate file.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L240",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_240",
-      "community": 1,
-      "norm_label": "download a certificate file."
-    },
-    {
-      "label": "Get temp file path for a session.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L267",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_267",
-      "community": 1,
-      "norm_label": "get temp file path for a session."
-    },
-    {
-      "label": "Clean up temp file for a session.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L273",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_273",
-      "community": 1,
-      "norm_label": "clean up temp file for a session."
-    },
-    {
-      "label": "Sectigo certificate download page.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L286",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_286",
-      "community": 1,
-      "norm_label": "sectigo certificate download page."
-    },
-    {
-      "label": "Fetch certificates from Sectigo using SSL ID.     Returns the downloaded certifi",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L293",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_293",
-      "community": 1,
-      "norm_label": "fetch certificates from sectigo using ssl id.     returns the downloaded certifi"
-    },
-    {
-      "label": "Save the combined certificate to the system and optionally download it.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L368",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_368",
-      "community": 1,
-      "norm_label": "save the combined certificate to the system and optionally download it."
-    },
-    {
-      "label": "Download the combined certificate file.",
-      "file_type": "rationale",
-      "source_file": "routes/certificates.py",
-      "source_location": "L557",
-      "_origin": "ast",
-      "id": "routes_certificates_rationale_557",
-      "community": 1,
-      "norm_label": "download the combined certificate file."
-    },
-    {
       "label": "sectigo_utils.py",
       "file_type": "code",
       "source_file": "sectigo_utils.py",
       "source_location": "L1",
       "_origin": "ast",
+      "id": "sectigo_utils",
       "community": 7,
-      "norm_label": "sectigo_utils.py",
-      "id": "sectigo_utils"
+      "norm_label": "sectigo_utils.py"
     },
     {
       "label": "SectigoDownloadError",
@@ -347,9 +67,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L17",
       "_origin": "ast",
+      "id": "sectigo_utils_sectigodownloaderror",
       "community": 7,
-      "norm_label": "sectigodownloaderror",
-      "id": "sectigo_utils_sectigodownloaderror"
+      "norm_label": "sectigodownloaderror"
     },
     {
       "label": "Exception",
@@ -357,9 +77,9 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
+      "id": "exception",
       "community": 7,
-      "norm_label": "exception",
-      "id": "exception"
+      "norm_label": "exception"
     },
     {
       "label": "download_certificate()",
@@ -367,9 +87,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L22",
       "_origin": "ast",
+      "id": "sectigo_utils_download_certificate",
       "community": 7,
-      "norm_label": "download_certificate()",
-      "id": "sectigo_utils_download_certificate"
+      "norm_label": "download_certificate()"
     },
     {
       "label": "download_server_certificate()",
@@ -377,9 +97,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L70",
       "_origin": "ast",
+      "id": "sectigo_utils_download_server_certificate",
       "community": 7,
-      "norm_label": "download_server_certificate()",
-      "id": "sectigo_utils_download_server_certificate"
+      "norm_label": "download_server_certificate()"
     },
     {
       "label": "download_intermediate_certificate()",
@@ -387,9 +107,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L83",
       "_origin": "ast",
+      "id": "sectigo_utils_download_intermediate_certificate",
       "community": 7,
-      "norm_label": "download_intermediate_certificate()",
-      "id": "sectigo_utils_download_intermediate_certificate"
+      "norm_label": "download_intermediate_certificate()"
     },
     {
       "label": "download_and_combine_certificates()",
@@ -397,9 +117,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L96",
       "_origin": "ast",
+      "id": "sectigo_utils_download_and_combine_certificates",
       "community": 7,
-      "norm_label": "download_and_combine_certificates()",
-      "id": "sectigo_utils_download_and_combine_certificates"
+      "norm_label": "download_and_combine_certificates()"
     },
     {
       "label": "extract_dns_sans()",
@@ -407,9 +127,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L159",
       "_origin": "ast",
+      "id": "sectigo_utils_extract_dns_sans",
       "community": 1,
-      "norm_label": "extract_dns_sans()",
-      "id": "sectigo_utils_extract_dns_sans"
+      "norm_label": "extract_dns_sans()"
     },
     {
       "label": "validate_ssl_id()",
@@ -417,9 +137,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L197",
       "_origin": "ast",
+      "id": "sectigo_utils_validate_ssl_id",
       "community": 1,
-      "norm_label": "validate_ssl_id()",
-      "id": "sectigo_utils_validate_ssl_id"
+      "norm_label": "validate_ssl_id()"
     },
     {
       "label": "Sectigo Certificate Download Utilities. Downloads SSL certificates from Sectigo",
@@ -427,9 +147,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L1",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_1",
       "community": 7,
-      "norm_label": "sectigo certificate download utilities. downloads ssl certificates from sectigo",
-      "id": "sectigo_utils_rationale_1"
+      "norm_label": "sectigo certificate download utilities. downloads ssl certificates from sectigo"
     },
     {
       "label": "Custom exception for Sectigo download errors.",
@@ -437,9 +157,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L18",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_18",
       "community": 7,
-      "norm_label": "custom exception for sectigo download errors.",
-      "id": "sectigo_utils_rationale_18"
+      "norm_label": "custom exception for sectigo download errors."
     },
     {
       "label": "Download a certificate from Sectigo using SSL ID.          Args:         ssl_id:",
@@ -447,9 +167,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L23",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_23",
       "community": 7,
-      "norm_label": "download a certificate from sectigo using ssl id.          args:         ssl_id:",
-      "id": "sectigo_utils_rationale_23"
+      "norm_label": "download a certificate from sectigo using ssl id.          args:         ssl_id:"
     },
     {
       "label": "Download the server certificate (x509CO - Certificate Only).          Args:",
@@ -457,9 +177,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L71",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_71",
       "community": 7,
-      "norm_label": "download the server certificate (x509co - certificate only).          args:",
-      "id": "sectigo_utils_rationale_71"
+      "norm_label": "download the server certificate (x509co - certificate only).          args:"
     },
     {
       "label": "Download the intermediate/CA certificate (x509IO - Root/Intermediates only, PEM",
@@ -467,9 +187,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L84",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_84",
       "community": 7,
-      "norm_label": "download the intermediate/ca certificate (x509io - root/intermediates only, pem",
-      "id": "sectigo_utils_rationale_84"
+      "norm_label": "download the intermediate/ca certificate (x509io - root/intermediates only, pem"
     },
     {
       "label": "Download server and intermediate certificates from Sectigo and combine them.",
@@ -477,9 +197,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L97",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_97",
       "community": 7,
-      "norm_label": "download server and intermediate certificates from sectigo and combine them.",
-      "id": "sectigo_utils_rationale_97"
+      "norm_label": "download server and intermediate certificates from sectigo and combine them."
     },
     {
       "label": "Extract DNS Subject Alternative Names from a certificate.          Args:",
@@ -487,9 +207,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L160",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_160",
       "community": 1,
-      "norm_label": "extract dns subject alternative names from a certificate.          args:",
-      "id": "sectigo_utils_rationale_160"
+      "norm_label": "extract dns subject alternative names from a certificate.          args:"
     },
     {
       "label": "Basic validation of SSL ID format.          Args:         ssl_id: The SSL ID to",
@@ -497,9 +217,9 @@
       "source_file": "sectigo_utils.py",
       "source_location": "L198",
       "_origin": "ast",
+      "id": "sectigo_utils_rationale_198",
       "community": 1,
-      "norm_label": "basic validation of ssl id format.          args:         ssl_id: the ssl id to",
-      "id": "sectigo_utils_rationale_198"
+      "norm_label": "basic validation of ssl id format.          args:         ssl_id: the ssl id to"
     },
     {
       "label": "graphify.js",
@@ -527,7 +247,7 @@
       "source_file": "app.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "app.py",
       "id": "app"
     },
@@ -537,7 +257,7 @@
       "source_file": "app.py",
       "source_location": "L31",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "load_user()",
       "id": "app_load_user"
     },
@@ -547,7 +267,7 @@
       "source_file": "app.py",
       "source_location": "L36",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "create_app()",
       "id": "app_create_app"
     },
@@ -557,7 +277,7 @@
       "source_file": "app.py",
       "source_location": "L86",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "_setup_scheduler()",
       "id": "app_setup_scheduler"
     },
@@ -567,7 +287,7 @@
       "source_file": "app.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "ssl certificate manager application a flask-based web application for managing s",
       "id": "app_rationale_1"
     },
@@ -577,7 +297,7 @@
       "source_file": "app.py",
       "source_location": "L32",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "load user by id for flask-login.",
       "id": "app_rationale_32"
     },
@@ -587,7 +307,7 @@
       "source_file": "app.py",
       "source_location": "L87",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "setup background scheduler for certificate alert checks and scheduled backups.",
       "id": "app_rationale_87"
     },
@@ -607,7 +327,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "get_backup_path()",
       "id": "backup_utils_get_backup_path"
     },
@@ -637,7 +357,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L44",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "cleanup_old_backups()",
       "id": "backup_utils_cleanup_old_backups"
     },
@@ -707,7 +427,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L363",
       "_origin": "ast",
-      "community": 47,
+      "community": 3,
       "norm_label": "list_backups()",
       "id": "backup_utils_list_backups"
     },
@@ -717,7 +437,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L408",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "delete_backup()",
       "id": "backup_utils_delete_backup"
     },
@@ -727,7 +447,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L441",
       "_origin": "ast",
-      "community": 47,
+      "community": 3,
       "norm_label": "format_file_size()",
       "id": "backup_utils_format_file_size"
     },
@@ -747,7 +467,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L507",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "get_backup_schedule()",
       "id": "backup_utils_get_backup_schedule"
     },
@@ -767,7 +487,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L20",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "get the backup directory path from settings or use default.",
       "id": "backup_utils_rationale_20"
     },
@@ -797,7 +517,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L45",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "remove old backups keeping only the most recent max_backups.          args:",
       "id": "backup_utils_rationale_45"
     },
@@ -867,7 +587,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L364",
       "_origin": "ast",
-      "community": 47,
+      "community": 3,
       "norm_label": "list all available backups.          returns:         dict: {'cert_backups': lis",
       "id": "backup_utils_rationale_364"
     },
@@ -877,7 +597,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L409",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "delete a specific backup file.          args:         filename: name of the back",
       "id": "backup_utils_rationale_409"
     },
@@ -887,7 +607,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L442",
       "_origin": "ast",
-      "community": 47,
+      "community": 3,
       "norm_label": "format file size in human-readable format.",
       "id": "backup_utils_rationale_442"
     },
@@ -907,7 +627,7 @@
       "source_file": "backup_utils.py",
       "source_location": "L508",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "get backup schedule settings.          returns:         dict with schedule setti",
       "id": "backup_utils_rationale_508"
     },
@@ -927,7 +647,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 36,
+      "community": 20,
       "norm_label": "get_file_extension()",
       "id": "cert_utils_get_file_extension"
     },
@@ -947,7 +667,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L37",
       "_origin": "ast",
-      "community": 36,
+      "community": 20,
       "norm_label": "parse_certificate()",
       "id": "cert_utils_parse_certificate"
     },
@@ -957,7 +677,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L112",
       "_origin": "ast",
-      "community": 36,
+      "community": 20,
       "norm_label": "_build_key_info()",
       "id": "cert_utils_build_key_info"
     },
@@ -967,7 +687,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L157",
       "_origin": "ast",
-      "community": 35,
+      "community": 20,
       "norm_label": "_extract_cert_details()",
       "id": "cert_utils_extract_cert_details"
     },
@@ -977,7 +697,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L257",
       "_origin": "ast",
-      "community": 35,
+      "community": 20,
       "norm_label": "_get_name_attr()",
       "id": "cert_utils_get_name_attr"
     },
@@ -997,7 +717,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L281",
       "_origin": "ast",
-      "community": 35,
+      "community": 20,
       "norm_label": "extract_certificate_chain()",
       "id": "cert_utils_extract_certificate_chain"
     },
@@ -1017,7 +737,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L27",
       "_origin": "ast",
-      "community": 36,
+      "community": 20,
       "norm_label": "get normalized file extension.",
       "id": "cert_utils_rationale_27"
     },
@@ -1037,7 +757,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L38",
       "_origin": "ast",
-      "community": 36,
+      "community": 20,
       "norm_label": "parse a certificate file and return its details.     attempts multiple parsing s",
       "id": "cert_utils_rationale_38"
     },
@@ -1047,7 +767,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L113",
       "_origin": "ast",
-      "community": 36,
+      "community": 20,
       "norm_label": "build info dict for a private key file.",
       "id": "cert_utils_rationale_113"
     },
@@ -1057,7 +777,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L158",
       "_origin": "ast",
-      "community": 35,
+      "community": 20,
       "norm_label": "extract all details from an x509 certificate object.",
       "id": "cert_utils_rationale_158"
     },
@@ -1067,7 +787,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L258",
       "_origin": "ast",
-      "community": 35,
+      "community": 20,
       "norm_label": "safely get a name attribute from x509 name object.",
       "id": "cert_utils_rationale_258"
     },
@@ -1087,7 +807,7 @@
       "source_file": "cert_utils.py",
       "source_location": "L282",
       "_origin": "ast",
-      "community": 35,
+      "community": 20,
       "norm_label": "extract certificate chain from a certificate file.     returns a list of certifi",
       "id": "cert_utils_rationale_282"
     },
@@ -1117,7 +837,7 @@
       "source_file": "conversion_utils.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "conversion_utils.py",
       "id": "conversion_utils"
     },
@@ -1127,7 +847,7 @@
       "source_file": "conversion_utils.py",
       "source_location": "L39",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "get_output_formats()",
       "id": "conversion_utils_get_output_formats"
     },
@@ -1187,7 +907,7 @@
       "source_file": "conversion_utils.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "certificate conversion utilities. supports conversion between pem, der, crt, cer",
       "id": "conversion_utils_rationale_1"
     },
@@ -1197,7 +917,7 @@
       "source_file": "conversion_utils.py",
       "source_location": "L40",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "get available output formats for a given input format.",
       "id": "conversion_utils_rationale_40"
     },
@@ -1341,7 +1061,7 @@
       "source_file": "logger.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 20,
+      "community": 6,
       "norm_label": "logger.py",
       "id": "logger"
     },
@@ -1351,7 +1071,7 @@
       "source_file": "logger.py",
       "source_location": "L25",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "setup_logging()",
       "id": "logger_setup_logging"
     },
@@ -1381,7 +1101,7 @@
       "source_file": "logger.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 20,
+      "community": 6,
       "norm_label": "centralized logging configuration for ssl cert manager. provides file + console",
       "id": "logger_rationale_1"
     },
@@ -1391,7 +1111,7 @@
       "source_file": "logger.py",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 2,
+      "community": 6,
       "norm_label": "configure application-wide logging.     call once during app creation, *after* d",
       "id": "logger_rationale_26"
     },
@@ -1501,7 +1221,7 @@
       "source_file": "models.py",
       "source_location": "L10",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": "user",
       "id": "models_user"
     },
@@ -1511,7 +1231,7 @@
       "source_file": "",
       "source_location": "",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": "usermixin",
       "id": "usermixin"
     },
@@ -1521,7 +1241,7 @@
       "source_file": "models.py",
       "source_location": "L25",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": ".set_password()",
       "id": "models_user_set_password"
     },
@@ -1531,7 +1251,7 @@
       "source_file": "models.py",
       "source_location": "L29",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": ".check_password()",
       "id": "models_user_check_password"
     },
@@ -1541,7 +1261,7 @@
       "source_file": "models.py",
       "source_location": "L33",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": ".__repr__()",
       "id": "models_user_repr"
     },
@@ -1601,7 +1321,7 @@
       "source_file": "models.py",
       "source_location": "L133",
       "_origin": "ast",
-      "community": 24,
+      "community": 47,
       "norm_label": "notificationchannel",
       "id": "models_notificationchannel"
     },
@@ -1611,7 +1331,7 @@
       "source_file": "models.py",
       "source_location": "L167",
       "_origin": "ast",
-      "community": 24,
+      "community": 47,
       "norm_label": ".__repr__()",
       "id": "models_notificationchannel_repr"
     },
@@ -1621,7 +1341,7 @@
       "source_file": "models.py",
       "source_location": "L171",
       "_origin": "ast",
-      "community": 24,
+      "community": 15,
       "norm_label": "alertlog",
       "id": "models_alertlog"
     },
@@ -1631,7 +1351,7 @@
       "source_file": "models.py",
       "source_location": "L183",
       "_origin": "ast",
-      "community": 24,
+      "community": 15,
       "norm_label": ".__repr__()",
       "id": "models_alertlog_repr"
     },
@@ -1641,7 +1361,7 @@
       "source_file": "models.py",
       "source_location": "L187",
       "_origin": "ast",
-      "community": 24,
+      "community": 22,
       "norm_label": "alertinstance",
       "id": "models_alertinstance"
     },
@@ -1651,7 +1371,7 @@
       "source_file": "models.py",
       "source_location": "L221",
       "_origin": "ast",
-      "community": 24,
+      "community": 22,
       "norm_label": ".__repr__()",
       "id": "models_alertinstance_repr"
     },
@@ -1741,7 +1461,7 @@
       "source_file": "models.py",
       "source_location": "L11",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": "user model for authentication.",
       "id": "models_rationale_11"
     },
@@ -1751,7 +1471,7 @@
       "source_file": "models.py",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": "hash and set the user's password.",
       "id": "models_rationale_26"
     },
@@ -1761,7 +1481,7 @@
       "source_file": "models.py",
       "source_location": "L30",
       "_origin": "ast",
-      "community": 6,
+      "community": 35,
       "norm_label": "check if the provided password matches the hash.",
       "id": "models_rationale_30"
     },
@@ -1771,7 +1491,7 @@
       "source_file": "models.py",
       "source_location": "L188",
       "_origin": "ast",
-      "community": 24,
+      "community": 22,
       "norm_label": "tracks active/firing alerts for certificates.     allows pausing/resuming alerts",
       "id": "models_rationale_188"
     },
@@ -1821,7 +1541,7 @@
       "source_file": "notifications.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 24,
+      "community": 15,
       "norm_label": "notifications.py",
       "id": "notifications"
     },
@@ -1831,7 +1551,7 @@
       "source_file": "notifications.py",
       "source_location": "L21",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "check_and_send_alerts()",
       "id": "notifications_check_and_send_alerts"
     },
@@ -1841,7 +1561,7 @@
       "source_file": "notifications.py",
       "source_location": "L140",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "_auto_resolve_alerts()",
       "id": "notifications_auto_resolve_alerts"
     },
@@ -1851,7 +1571,7 @@
       "source_file": "notifications.py",
       "source_location": "L163",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "_resolve_other_cert_alerts()",
       "id": "notifications_resolve_other_cert_alerts"
     },
@@ -1861,7 +1581,7 @@
       "source_file": "notifications.py",
       "source_location": "L183",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "_resolve_all_cert_alerts()",
       "id": "notifications_resolve_all_cert_alerts"
     },
@@ -1871,7 +1591,7 @@
       "source_file": "notifications.py",
       "source_location": "L202",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "_cleanup_duplicate_alerts()",
       "id": "notifications_cleanup_duplicate_alerts"
     },
@@ -1961,7 +1681,7 @@
       "source_file": "notifications.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 24,
+      "community": 15,
       "norm_label": "notification system for certificate expiry alerts. supports: email (smtp), slack",
       "id": "notifications_rationale_1"
     },
@@ -1971,7 +1691,7 @@
       "source_file": "notifications.py",
       "source_location": "L22",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "main alert check: find expiring certs and send notifications.",
       "id": "notifications_rationale_22"
     },
@@ -1981,7 +1701,7 @@
       "source_file": "notifications.py",
       "source_location": "L141",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "automatically resolve alerts for certificates that are no longer expiring or hav",
       "id": "notifications_rationale_141"
     },
@@ -1991,7 +1711,7 @@
       "source_file": "notifications.py",
       "source_location": "L164",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "resolve all alert instances for a certificate except the current applicable rule",
       "id": "notifications_rationale_164"
     },
@@ -2001,7 +1721,7 @@
       "source_file": "notifications.py",
       "source_location": "L184",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "resolve all alert instances for a certificate.     used when a certificate no lo",
       "id": "notifications_rationale_184"
     },
@@ -2011,7 +1731,7 @@
       "source_file": "notifications.py",
       "source_location": "L203",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "clean up duplicate alert instances for the same certificate.     for each certif",
       "id": "notifications_rationale_203"
     },
@@ -2021,7 +1741,7 @@
       "source_file": "notifications.py",
       "source_location": "L289",
       "_origin": "ast",
-      "community": 15,
+      "community": 22,
       "norm_label": "public api to clean up duplicate alert instances.     for each certificate, keep",
       "id": "notifications_rationale_289"
     },
@@ -2219,12 +1939,292 @@
       "id": "routes_auth_rationale_129"
     },
     {
+      "label": "certificates.py",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "certificates.py",
+      "id": "routes_certificates"
+    },
+    {
+      "label": "list_certs()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L19",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "list_certs()",
+      "id": "routes_certificates_list_certs"
+    },
+    {
+      "label": "api_list()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L26",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "api_list()",
+      "id": "routes_certificates_api_list"
+    },
+    {
+      "label": "add_cert()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L64",
+      "_origin": "ast",
+      "community": 36,
+      "norm_label": "add_cert()",
+      "id": "routes_certificates_add_cert"
+    },
+    {
+      "label": "view_cert()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L168",
+      "_origin": "ast",
+      "community": 20,
+      "norm_label": "view_cert()",
+      "id": "routes_certificates_view_cert"
+    },
+    {
+      "label": "edit_cert()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L191",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "edit_cert()",
+      "id": "routes_certificates_edit_cert"
+    },
+    {
+      "label": "delete_cert()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L213",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "delete_cert()",
+      "id": "routes_certificates_delete_cert"
+    },
+    {
+      "label": "download_cert()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L239",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "download_cert()",
+      "id": "routes_certificates_download_cert"
+    },
+    {
+      "label": "_get_sectigo_temp_path()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L266",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "_get_sectigo_temp_path()",
+      "id": "routes_certificates_get_sectigo_temp_path"
+    },
+    {
+      "label": "_cleanup_sectigo_temp()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L272",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "_cleanup_sectigo_temp()",
+      "id": "routes_certificates_cleanup_sectigo_temp"
+    },
+    {
+      "label": "sectigo_download()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L285",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "sectigo_download()",
+      "id": "routes_certificates_sectigo_download"
+    },
+    {
+      "label": "sectigo_fetch_certs()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L292",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "sectigo_fetch_certs()",
+      "id": "routes_certificates_sectigo_fetch_certs"
+    },
+    {
+      "label": "sectigo_save_cert()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L367",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "sectigo_save_cert()",
+      "id": "routes_certificates_sectigo_save_cert"
+    },
+    {
+      "label": "sectigo_download_file()",
+      "file_type": "code",
+      "source_file": "routes/certificates.py",
+      "source_location": "L556",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "sectigo_download_file()",
+      "id": "routes_certificates_sectigo_download_file"
+    },
+    {
+      "label": "Certificate CRUD routes.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "certificate crud routes.",
+      "id": "routes_certificates_rationale_1"
+    },
+    {
+      "label": "List all certificates (page, DataTables fetches via API).",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L20",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "list all certificates (page, datatables fetches via api).",
+      "id": "routes_certificates_rationale_20"
+    },
+    {
+      "label": "API endpoint for DataTables.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L27",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "api endpoint for datatables.",
+      "id": "routes_certificates_rationale_27"
+    },
+    {
+      "label": "Add a new certificate.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L65",
+      "_origin": "ast",
+      "community": 36,
+      "norm_label": "add a new certificate.",
+      "id": "routes_certificates_rationale_65"
+    },
+    {
+      "label": "View certificate details.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L169",
+      "_origin": "ast",
+      "community": 20,
+      "norm_label": "view certificate details.",
+      "id": "routes_certificates_rationale_169"
+    },
+    {
+      "label": "Edit certificate metadata (notes, tags).",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L192",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "edit certificate metadata (notes, tags).",
+      "id": "routes_certificates_rationale_192"
+    },
+    {
+      "label": "Delete a certificate.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L214",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "delete a certificate.",
+      "id": "routes_certificates_rationale_214"
+    },
+    {
+      "label": "Download a certificate file.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L240",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "download a certificate file.",
+      "id": "routes_certificates_rationale_240"
+    },
+    {
+      "label": "Get temp file path for a session.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L267",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "get temp file path for a session.",
+      "id": "routes_certificates_rationale_267"
+    },
+    {
+      "label": "Clean up temp file for a session.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L273",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "clean up temp file for a session.",
+      "id": "routes_certificates_rationale_273"
+    },
+    {
+      "label": "Sectigo certificate download page.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L286",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "sectigo certificate download page.",
+      "id": "routes_certificates_rationale_286"
+    },
+    {
+      "label": "Fetch certificates from Sectigo using SSL ID.     Returns the downloaded certifi",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L293",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "fetch certificates from sectigo using ssl id.     returns the downloaded certifi",
+      "id": "routes_certificates_rationale_293"
+    },
+    {
+      "label": "Save the combined certificate to the system and optionally download it.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L368",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "save the combined certificate to the system and optionally download it.",
+      "id": "routes_certificates_rationale_368"
+    },
+    {
+      "label": "Download the combined certificate file.",
+      "file_type": "rationale",
+      "source_file": "routes/certificates.py",
+      "source_location": "L557",
+      "_origin": "ast",
+      "community": 1,
+      "norm_label": "download the combined certificate file.",
+      "id": "routes_certificates_rationale_557"
+    },
+    {
       "label": "conversion.py",
       "file_type": "code",
       "source_file": "routes/conversion.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "conversion.py",
       "id": "routes_conversion"
     },
@@ -2234,7 +2234,7 @@
       "source_file": "routes/conversion.py",
       "source_location": "L18",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "index()",
       "id": "routes_conversion_index"
     },
@@ -2244,7 +2244,7 @@
       "source_file": "routes/conversion.py",
       "source_location": "L25",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "get_formats()",
       "id": "routes_conversion_get_formats"
     },
@@ -2264,7 +2264,7 @@
       "source_file": "routes/conversion.py",
       "source_location": "L1",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "certificate conversion routes.",
       "id": "routes_conversion_rationale_1"
     },
@@ -2274,7 +2274,7 @@
       "source_file": "routes/conversion.py",
       "source_location": "L19",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "conversion utility page.",
       "id": "routes_conversion_rationale_19"
     },
@@ -2284,7 +2284,7 @@
       "source_file": "routes/conversion.py",
       "source_location": "L26",
       "_origin": "ast",
-      "community": 20,
+      "community": 0,
       "norm_label": "get available output formats for a given input format.",
       "id": "routes_conversion_rationale_26"
     },
@@ -2734,7 +2734,7 @@
       "source_file": "routes/settings.py",
       "source_location": "L252",
       "_origin": "ast",
-      "community": 24,
+      "community": 47,
       "norm_label": "save_notification()",
       "id": "routes_settings_save_notification"
     },
@@ -2774,7 +2774,7 @@
       "source_file": "routes/settings.py",
       "source_location": "L346",
       "_origin": "ast",
-      "community": 47,
+      "community": 3,
       "norm_label": "backup()",
       "id": "routes_settings_backup"
     },
@@ -2814,7 +2814,7 @@
       "source_file": "routes/settings.py",
       "source_location": "L415",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "download_backup()",
       "id": "routes_settings_download_backup"
     },
@@ -2974,7 +2974,7 @@
       "source_file": "routes/settings.py",
       "source_location": "L253",
       "_origin": "ast",
-      "community": 24,
+      "community": 47,
       "norm_label": "add or update a notification channel.",
       "id": "routes_settings_rationale_253"
     },
@@ -3014,7 +3014,7 @@
       "source_file": "routes/settings.py",
       "source_location": "L347",
       "_origin": "ast",
-      "community": 47,
+      "community": 3,
       "norm_label": "backup management page.",
       "id": "routes_settings_rationale_347"
     },
@@ -3054,7 +3054,7 @@
       "source_file": "routes/settings.py",
       "source_location": "L416",
       "_origin": "ast",
-      "community": 22,
+      "community": 3,
       "norm_label": "download a backup file.",
       "id": "routes_settings_rationale_416"
     },
@@ -6287,6 +6287,32 @@
       "id": "add_html_drag_drop_upload"
     },
     {
+      "label": "DataTables Certificate List",
+      "file_type": "concept",
+      "source_file": "templates/certificates/list.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 4,
+      "norm_label": "datatables certificate list",
+      "id": "list_html_datatables"
+    },
+    {
+      "label": "SweetAlert Delete Confirmation",
+      "file_type": "concept",
+      "source_file": "templates/certificates/list.html",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "community": 4,
+      "norm_label": "sweetalert delete confirmation",
+      "id": "list_html_sweetalert_delete"
+    },
+    {
       "label": "Certificate Hierarchy Display",
       "file_type": "concept",
       "source_file": "templates/certificates/view.html",
@@ -6422,628 +6448,6 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app.py",
-      "source_location": "L16",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "app",
-      "target": "routes_certificates"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "cert_utils"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "cert_utils_extract_certificate_chain"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "cert_utils_is_supported_file"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "cert_utils_parse_certificate"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L10",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "cert_utils_refresh_cert_expiry"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "logger"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L11",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "logger_get_logger"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "models"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "models_certificate"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "models_setting"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L64",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_add_cert"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L26",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_api_list"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L272",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_cleanup_sectigo_temp"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L213",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_delete_cert"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L239",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_download_cert"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L191",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_edit_cert"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L266",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_get_sectigo_temp_path"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L19",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_list_certs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L285",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_sectigo_download"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L556",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_sectigo_download_file"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L292",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_sectigo_fetch_certs"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L367",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_sectigo_save_cert"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L168",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "routes_certificates_view_cert"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L297",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "sectigo_utils_download_and_combine_certificates"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L297",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "sectigo_utils_extract_dns_sans"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L297",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "sectigo_utils_sectigodownloaderror"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L297",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates",
-      "target": "sectigo_utils_validate_ssl_id"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L1",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_1",
-      "target": "routes_certificates"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L20",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_20",
-      "target": "routes_certificates_list_certs"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L30",
-      "weight": 1.0,
-      "source": "routes_certificates_api_list",
-      "target": "cert_utils_refresh_cert_expiry"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L27",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_27",
-      "target": "routes_certificates_api_list"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L78",
-      "weight": 1.0,
-      "source": "routes_certificates_add_cert",
-      "target": "cert_utils_is_supported_file"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L92",
-      "weight": 1.0,
-      "source": "routes_certificates_add_cert",
-      "target": "cert_utils_parse_certificate"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L124",
-      "weight": 1.0,
-      "source": "routes_certificates_add_cert",
-      "target": "models_certificate"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L65",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_65",
-      "target": "routes_certificates_add_cert"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L169",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_169",
-      "target": "routes_certificates_view_cert"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L184",
-      "weight": 1.0,
-      "source": "routes_certificates_view_cert",
-      "target": "cert_utils_extract_certificate_chain"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L171",
-      "weight": 1.0,
-      "source": "routes_certificates_view_cert",
-      "target": "cert_utils_refresh_cert_expiry"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L192",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_192",
-      "target": "routes_certificates_edit_cert"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L214",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_214",
-      "target": "routes_certificates_delete_cert"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L240",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_240",
-      "target": "routes_certificates_download_cert"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L274",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_cleanup_sectigo_temp",
-      "target": "routes_certificates_get_sectigo_temp_path"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L267",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_267",
-      "target": "routes_certificates_get_sectigo_temp_path"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L565",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_sectigo_download_file",
-      "target": "routes_certificates_get_sectigo_temp_path"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L335",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_sectigo_fetch_certs",
-      "target": "routes_certificates_get_sectigo_temp_path"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L386",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_sectigo_save_cert",
-      "target": "routes_certificates_get_sectigo_temp_path"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L273",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_273",
-      "target": "routes_certificates_cleanup_sectigo_temp"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L332",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_sectigo_fetch_certs",
-      "target": "routes_certificates_cleanup_sectigo_temp"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L532",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_sectigo_save_cert",
-      "target": "routes_certificates_cleanup_sectigo_temp"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L286",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_286",
-      "target": "routes_certificates_sectigo_download"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L293",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_293",
-      "target": "routes_certificates_sectigo_fetch_certs"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L315",
-      "weight": 1.0,
-      "source": "routes_certificates_sectigo_fetch_certs",
-      "target": "sectigo_utils_download_and_combine_certificates"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L324",
-      "weight": 1.0,
-      "source": "routes_certificates_sectigo_fetch_certs",
-      "target": "sectigo_utils_extract_dns_sans"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L311",
-      "weight": 1.0,
-      "source": "routes_certificates_sectigo_fetch_certs",
-      "target": "sectigo_utils_validate_ssl_id"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L368",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_368",
-      "target": "routes_certificates_sectigo_save_cert"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L452",
-      "weight": 1.0,
-      "source": "routes_certificates_sectigo_save_cert",
-      "target": "cert_utils_parse_certificate"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "routes/certificates.py",
-      "source_location": "L494",
-      "weight": 1.0,
-      "source": "routes_certificates_sectigo_save_cert",
-      "target": "models_certificate"
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "routes/certificates.py",
-      "source_location": "L557",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "routes_certificates_rationale_557",
-      "target": "routes_certificates_sectigo_download_file"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
       "source_file": "sectigo_utils.py",
       "source_location": "L9",
       "weight": 1.0,
@@ -7141,6 +6545,17 @@
       "confidence_score": 1.0,
       "source": "sectigo_utils_rationale_1",
       "target": "sectigo_utils"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L297",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "sectigo_utils_sectigodownloaderror"
     },
     {
       "relation": "calls",
@@ -7248,6 +6663,28 @@
       "target": "sectigo_utils_download_intermediate_certificate"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L297",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "sectigo_utils_download_and_combine_certificates"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L315",
+      "weight": 1.0,
+      "source": "routes_certificates_sectigo_fetch_certs",
+      "target": "sectigo_utils_download_and_combine_certificates"
+    },
+    {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "sectigo_utils.py",
@@ -7258,6 +6695,28 @@
       "target": "sectigo_utils_download_and_combine_certificates"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L297",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "sectigo_utils_extract_dns_sans"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L324",
+      "weight": 1.0,
+      "source": "routes_certificates_sectigo_fetch_certs",
+      "target": "sectigo_utils_extract_dns_sans"
+    },
+    {
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "sectigo_utils.py",
@@ -7266,6 +6725,28 @@
       "confidence_score": 1.0,
       "source": "sectigo_utils_rationale_160",
       "target": "sectigo_utils_extract_dns_sans"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L297",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "sectigo_utils_validate_ssl_id"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L311",
+      "weight": 1.0,
+      "source": "routes_certificates_sectigo_fetch_certs",
+      "target": "sectigo_utils_validate_ssl_id"
     },
     {
       "relation": "rationale_for",
@@ -7459,6 +6940,17 @@
       "confidence_score": 1.0,
       "source": "app",
       "target": "routes_auth"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app.py",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "app",
+      "target": "routes_certificates"
     },
     {
       "relation": "imports_from",
@@ -8444,6 +7936,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "cert_utils"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "routes/conversion.py",
       "source_location": "L9",
       "weight": 1.0,
@@ -8519,6 +8022,28 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "cert_utils_is_supported_file"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L78",
+      "weight": 1.0,
+      "source": "routes_certificates_add_cert",
+      "target": "cert_utils_is_supported_file"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "routes/conversion.py",
       "source_location": "L9",
       "weight": 1.0,
@@ -8556,6 +8081,39 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "cert_utils_rationale_38",
+      "target": "cert_utils_parse_certificate"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "cert_utils_parse_certificate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L92",
+      "weight": 1.0,
+      "source": "routes_certificates_add_cert",
+      "target": "cert_utils_parse_certificate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L452",
+      "weight": 1.0,
+      "source": "routes_certificates_sectigo_save_cert",
       "target": "cert_utils_parse_certificate"
     },
     {
@@ -8646,6 +8204,39 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "cert_utils_refresh_cert_expiry"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "routes_certificates_api_list",
+      "target": "cert_utils_refresh_cert_expiry"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "routes_certificates_view_cert",
+      "target": "cert_utils_refresh_cert_expiry"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "routes/dashboard.py",
       "source_location": "L8",
       "weight": 1.0,
@@ -8672,6 +8263,28 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "cert_utils_rationale_282",
+      "target": "cert_utils_extract_certificate_chain"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L10",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "cert_utils_extract_certificate_chain"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L184",
+      "weight": 1.0,
+      "source": "routes_certificates_view_cert",
       "target": "cert_utils_extract_certificate_chain"
     },
     {
@@ -9140,6 +8753,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "logger"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "routes/conversion.py",
       "source_location": "L10",
       "weight": 1.0,
@@ -9252,6 +8876,17 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "routes_auth",
+      "target": "logger_get_logger"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L11",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
       "target": "logger_get_logger"
     },
     {
@@ -9495,6 +9130,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "models"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "routes/csr.py",
       "source_location": "L9",
       "weight": 1.0,
@@ -9656,6 +9302,39 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "notifications",
+      "target": "models_certificate"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "models_certificate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "routes_certificates_add_cert",
+      "target": "models_certificate"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "routes/certificates.py",
+      "source_location": "L494",
+      "weight": 1.0,
+      "source": "routes_certificates_sectigo_save_cert",
       "target": "models_certificate"
     },
     {
@@ -9892,6 +9571,17 @@
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "notifications",
+      "target": "models_setting"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
       "target": "models_setting"
     },
     {
@@ -10577,6 +10267,342 @@
       "confidence_score": 1.0,
       "source": "routes_auth_rationale_129",
       "target": "routes_auth_verify_password"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L64",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_add_cert"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L26",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_api_list"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L272",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_cleanup_sectigo_temp"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L213",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_delete_cert"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L239",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_download_cert"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L191",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_edit_cert"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L266",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_get_sectigo_temp_path"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L19",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_list_certs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L285",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_sectigo_download"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L556",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_sectigo_download_file"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L292",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_sectigo_fetch_certs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L367",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_sectigo_save_cert"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L168",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates",
+      "target": "routes_certificates_view_cert"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_1",
+      "target": "routes_certificates"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L20",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_20",
+      "target": "routes_certificates_list_certs"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L27",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_27",
+      "target": "routes_certificates_api_list"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L65",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_65",
+      "target": "routes_certificates_add_cert"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L169",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_169",
+      "target": "routes_certificates_view_cert"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L192",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_192",
+      "target": "routes_certificates_edit_cert"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L214",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_214",
+      "target": "routes_certificates_delete_cert"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L240",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_240",
+      "target": "routes_certificates_download_cert"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L274",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_cleanup_sectigo_temp",
+      "target": "routes_certificates_get_sectigo_temp_path"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L267",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_267",
+      "target": "routes_certificates_get_sectigo_temp_path"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L565",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_sectigo_download_file",
+      "target": "routes_certificates_get_sectigo_temp_path"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L335",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_sectigo_fetch_certs",
+      "target": "routes_certificates_get_sectigo_temp_path"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L386",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_sectigo_save_cert",
+      "target": "routes_certificates_get_sectigo_temp_path"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L273",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_273",
+      "target": "routes_certificates_cleanup_sectigo_temp"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L332",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_sectigo_fetch_certs",
+      "target": "routes_certificates_cleanup_sectigo_temp"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L532",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_sectigo_save_cert",
+      "target": "routes_certificates_cleanup_sectigo_temp"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L286",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_286",
+      "target": "routes_certificates_sectigo_download"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L293",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_293",
+      "target": "routes_certificates_sectigo_fetch_certs"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L368",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_368",
+      "target": "routes_certificates_sectigo_save_cert"
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "routes/certificates.py",
+      "source_location": "L557",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "routes_certificates_rationale_557",
+      "target": "routes_certificates_sectigo_download_file"
     },
     {
       "relation": "contains",
@@ -14259,6 +14285,16 @@
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
+      "source_file": "templates/certificates/list.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "list_html_datatables",
+      "target": "readme_md_certificate_management"
+    },
+    {
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
       "source_file": "templates/certificates/sectigo_download.html",
       "source_location": null,
       "weight": 1.0,
@@ -14314,6 +14350,16 @@
       "weight": 1.0,
       "source": "base_html_theme_system",
       "target": "profile_html_theme_preferences"
+    },
+    {
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "templates/certificates/list.html",
+      "source_location": null,
+      "weight": 1.0,
+      "source": "list_html_sweetalert_delete",
+      "target": "list_html_datatables"
     }
   ],
   "hyperedges": [
@@ -14363,5 +14409,5 @@
       "source_file": "templates/base.html"
     }
   ],
-  "built_at_commit": "5aafa0d969a11c8febd10877efcc1926172ef851"
+  "built_at_commit": "d1bb304c37da32e26792d0a1cf211a947385c4d0"
 }

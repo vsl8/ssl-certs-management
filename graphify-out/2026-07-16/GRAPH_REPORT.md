@@ -1,16 +1,16 @@
-# Graph Report - ssl-certs-management  (2026-07-16)
+# Graph Report - ssl-certs-management  (2026-07-15)
 
 ## Corpus Check
-- 61 files · ~67,417 words
+- 61 files · ~67,410 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 623 nodes · 769 edges · 64 communities (49 shown, 15 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 22 edges (avg confidence: 0.9)
+- 625 nodes · 771 edges · 64 communities (49 shown, 15 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 24 edges (avg confidence: 0.9)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5aafa0d9`
+- Built from commit: `d1bb304c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -111,32 +111,32 @@
 ## Communities (64 total, 15 thin omitted)
 
 ### Community 0 - "Conversion & Notification Core"
-Cohesion: 0.17
-Nodes (12): convert_certificate(), _create_jks_keystore(), _extract_key_from_pem(), _load_jks_keystore(), Create a JKS keystore from a certificate and optional private key.          Args, Convert a certificate from one format to another.      Args:         file_data:, Attempt to load a private key from PEM or DER data., Try to extract private key from a combined PEM file (cert + key). (+4 more)
+Cohesion: 0.13
+Nodes (20): convert_certificate(), _create_jks_keystore(), _extract_key_from_pem(), get_output_formats(), _load_jks_keystore(), Certificate conversion utilities. Supports conversion between PEM, DER, CRT, CER, Create a JKS keystore from a certificate and optional private key.          Args, Convert a certificate from one format to another.      Args:         file_data: (+12 more)
 
 ### Community 1 - "Certificate Management"
 Cohesion: 0.09
 Nodes (27): api_list(), _cleanup_sectigo_temp(), delete_cert(), download_cert(), edit_cert(), _get_sectigo_temp_path(), list_certs(), Certificate CRUD routes. (+19 more)
 
 ### Community 2 - "Database Models & CSR"
-Cohesion: 0.06
-Nodes (39): create_app(), load_user(), SSL Certificate Manager Application A Flask-based web application for managing S, Load user by ID for Flask-Login., Setup background scheduler for certificate alert checks and scheduled backups., _setup_scheduler(), get_backup_schedule(), Get backup schedule settings.          Returns:         dict with schedule setti (+31 more)
+Cohesion: 0.08
+Nodes (29): CSRConfig, CSRRequest, CSR Configuration template model., CSR Request model to track generated CSRs., delete_config(), delete_csr(), ensure_csr_directory(), _generate_cnf_content() (+21 more)
 
 ### Community 3 - "Backup System"
-Cohesion: 0.12
-Nodes (23): backup_certificates(), backup_database(), ensure_backup_dir(), escape_sql_string(), generate_create_table(), generate_insert_statement(), generate_sql_dump(), get_timestamp() (+15 more)
+Cohesion: 0.08
+Nodes (37): backup_certificates(), backup_database(), cleanup_old_backups(), delete_backup(), ensure_backup_dir(), escape_sql_string(), format_file_size(), generate_create_table() (+29 more)
 
 ### Community 4 - "UI Components"
 Cohesion: 0.05
-Nodes (39): Drag-and-Drop File Upload, Alert State Management, Scheduled Backup System, Bootstrap-Based UI, Database Migration System, Interactive Format Converter, CSR Config Templates, Certificate Expiry Timeline Chart (+31 more)
+Nodes (41): Drag-and-Drop File Upload, Alert State Management, Scheduled Backup System, Bootstrap-Based UI, Database Migration System, Interactive Format Converter, CSR Config Templates, Certificate Expiry Timeline Chart (+33 more)
 
 ### Community 5 - "Application Core"
 Cohesion: 0.31
 Nodes (6): Config, migrate_database(), Database Migration: Add theme column to users table  This script adds the theme, Add theme column to users table if it doesn't exist., migrate(), Apply migration to add CASCADE delete constraints.
 
 ### Community 6 - "Model Design Rationale"
-Cohesion: 0.12
-Nodes (12): User model for authentication., Hash and set the user's password., Check if the provided password matches the hash., User, logout(), profile(), Authentication routes., Verify current user's password for session unlock. (+4 more)
+Cohesion: 0.11
+Nodes (18): create_app(), load_user(), SSL Certificate Manager Application A Flask-based web application for managing S, Load user by ID for Flask-Login., Setup background scheduler for certificate alert checks and scheduled backups., _setup_scheduler(), get_backup_schedule(), Get backup schedule settings.          Returns:         dict with schedule setti (+10 more)
 
 ### Community 7 - "Sectigo Integration"
 Cohesion: 0.22
@@ -167,32 +167,32 @@ Cohesion: 0.67
 Nodes (3): User Theme System, Theme Support Migration, Theme Preferences UI
 
 ### Community 15 - "Alert Instances"
-Cohesion: 0.09
-Nodes (23): _auto_resolve_alerts(), _build_message(), check_and_send_alerts(), _cleanup_duplicate_alerts(), Automatically resolve alerts for certificates that are no longer expiring or hav, Resolve all alert instances for a certificate except the current applicable rule, Resolve all alert instances for a certificate.     Used when a certificate no lo, Clean up duplicate alert instances for the same certificate.     For each certif (+15 more)
+Cohesion: 0.17
+Nodes (14): AlertLog, _build_message(), Notification system for certificate expiry alerts. Supports: Email (SMTP), Slack, Send a single notification through a channel., Build alert message text., Send alert via SMTP email., Send alert via Slack webhook., Send alert via Microsoft Teams webhook. (+6 more)
 
 ### Community 19 - "Community 19"
 Cohesion: 0.08
 Nodes (24): For /graphify add and --watch, For /graphify query, For the commit hook and native CLAUDE.md integration, For --update and --cluster-only, /graphify, Honesty Rules, Interpreter guard for subcommands, Part A - Structural extraction for code files (+16 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.15
-Nodes (16): Certificate parsing utilities. Supports: PEM, CRT, CER, DER, PFX/P12, KEY files., Refresh the days_until_expiry and is_expired for a certificate record., refresh_cert_expiry(), get_output_formats(), Certificate conversion utilities. Supports conversion between PEM, DER, CRT, CER, Get available output formats for a given input format., get_logger(), Centralized logging configuration for SSL Cert Manager. Provides file + console (+8 more)
+Cohesion: 0.13
+Nodes (21): _build_key_info(), _extract_cert_details(), extract_certificate_chain(), get_file_extension(), _get_name_attr(), parse_certificate(), Certificate parsing utilities. Supports: PEM, CRT, CER, DER, PFX/P12, KEY files., Build info dict for a private key file. (+13 more)
 
 ### Community 21 - "Community 21"
 Cohesion: 0.09
 Nodes (21): Application structure, Background behavior, Backup scheduling, Build, test, and run commands, Callflow visualizations, Configuration and environment, Core domain logic (utility modules), CSR and openssl integration (+13 more)
 
 ### Community 22 - "Community 22"
-Cohesion: 0.25
-Nodes (8): cleanup_old_backups(), delete_backup(), get_backup_path(), Get the backup directory path from settings or use default., Delete a specific backup file.          Args:         filename: Name of the back, Remove old backups keeping only the most recent MAX_BACKUPS.          Args:, download_backup(), Download a backup file.
+Cohesion: 0.14
+Nodes (13): AlertInstance, Tracks active/firing alerts for certificates.     Allows pausing/resuming alerts, _auto_resolve_alerts(), check_and_send_alerts(), _cleanup_duplicate_alerts(), Automatically resolve alerts for certificates that are no longer expiring or hav, Resolve all alert instances for a certificate except the current applicable rule, Resolve all alert instances for a certificate.     Used when a certificate no lo (+5 more)
 
 ### Community 23 - "Community 23"
 Cohesion: 0.15
 Nodes (12): Alternative: Manual Migration Inside Running Container, Database Volume Issues, Docker Deployment Guide, Environment Variables, Preserving Existing Data, Rebuilding the Container with Theme Support, Step 1: Stop the Running Container, Step 2: Rebuild the Image (+4 more)
 
 ### Community 24 - "Community 24"
-Cohesion: 0.11
-Nodes (17): AlertInstance, AlertLog, AlertRule, init_db(), NotificationChannel, Tracks active/firing alerts for certificates.     Allows pausing/resuming alerts, Initialize database and create tables., Seed default settings and alert rules if they don't exist. (+9 more)
+Cohesion: 0.19
+Nodes (10): AlertRule, init_db(), Initialize database and create tables., Seed default settings and alert rules if they don't exist., _seed_defaults(), Setting, Save backup schedule settings., Add or update an alert rule. (+2 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.22
@@ -220,11 +220,11 @@ Nodes (7): Creating a New Migration, Current Migrations, Database Migrations, Ho
 
 ### Community 35 - "Community 35"
 Cohesion: 0.25
-Nodes (8): _extract_cert_details(), extract_certificate_chain(), _get_name_attr(), Extract all details from an x509 certificate object., Safely get a name attribute from x509 Name object., Extract certificate chain from a certificate file.     Returns a list of certifi, View certificate details., view_cert()
+Nodes (5): User model for authentication., Hash and set the user's password., Check if the provided password matches the hash., User, UserMixin
 
 ### Community 36 - "Community 36"
-Cohesion: 0.17
-Nodes (11): _build_key_info(), get_file_extension(), is_supported_file(), parse_certificate(), Build info dict for a private key file., Get normalized file extension., Check if the file extension is supported., Parse a certificate file and return its details.     Attempts multiple parsing s (+3 more)
+Cohesion: 0.29
+Nodes (5): is_supported_file(), Check if the file extension is supported., Certificate, add_cert(), Add a new certificate.
 
 ### Community 37 - "Community 37"
 Cohesion: 0.33
@@ -267,8 +267,8 @@ Cohesion: 0.50
 Nodes (4): Swap the file handler at runtime when the user changes settings.     Returns (su, reconfigure_logging(), Save general settings., save_settings()
 
 ### Community 47 - "Community 47"
-Cohesion: 0.33
-Nodes (6): format_file_size(), list_backups(), List all available backups.          Returns:         dict: {'cert_backups': lis, Format file size in human-readable format., backup(), Backup management page.
+Cohesion: 0.50
+Nodes (3): NotificationChannel, Add or update a notification channel., save_notification()
 
 ### Community 48 - "Community 48"
 Cohesion: 0.50
@@ -291,24 +291,24 @@ Cohesion: 0.50
 Nodes (3): For --cluster-only, For --update (incremental re-extraction), graphify reference: incremental update and cluster-only
 
 ## Knowledge Gaps
-- **217 isolated node(s):** `docker-entrypoint.sh script`, `ssl-cert-manager`, `graphify`, `Usage`, `What graphify is for` (+212 more)
+- **218 isolated node(s):** `docker-entrypoint.sh script`, `ssl-cert-manager`, `graphify`, `Usage`, `What graphify is for` (+213 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `get_logger()` connect `Community 20` to `Certificate Management`, `Database Models & CSR`, `Backup System`, `Model Design Rationale`, `Sectigo Integration`, `Settings Routes`, `Community 24`?**
-  _High betweenness centrality (0.030) - this node is a cross-community bridge._
-- **Why does `Setting` connect `Community 24` to `Certificate Management`, `Database Models & CSR`, `Backup System`, `Settings Routes`, `Community 46`, `Community 20`?**
+- **Why does `get_logger()` connect `Community 20` to `Conversion & Notification Core`, `Certificate Management`, `Database Models & CSR`, `Backup System`, `Model Design Rationale`, `Sectigo Integration`, `Settings Routes`, `Alert Instances`?**
+  _High betweenness centrality (0.029) - this node is a cross-community bridge._
+- **Why does `Setting` connect `Community 24` to `Certificate Management`, `Database Models & CSR`, `Backup System`, `Model Design Rationale`, `Settings Routes`, `Community 46`, `Alert Instances`?**
   _High betweenness centrality (0.013) - this node is a cross-community bridge._
-- **Why does `User` connect `Model Design Rationale` to `Community 24`, `Database Models & CSR`, `Backup System`?**
+- **Why does `User` connect `Community 35` to `Community 24`, `Backup System`, `Model Design Rationale`?**
   _High betweenness centrality (0.010) - this node is a cross-community bridge._
-- **What connects `Certificate CRUD routes.`, `List all certificates (page, DataTables fetches via API).`, `API endpoint for DataTables.` to the rest of the system?**
-  _358 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `Sectigo Certificate Download Utilities. Downloads SSL certificates from Sectigo`, `Custom exception for Sectigo download errors.`, `Download a certificate from Sectigo using SSL ID.          Args:         ssl_id:` to the rest of the system?**
+  _359 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Conversion & Notification Core` be split into smaller, more focused modules?**
+  _Cohesion score 0.12987012987012986 - nodes in this community are weakly interconnected._
 - **Should `Certificate Management` be split into smaller, more focused modules?**
   _Cohesion score 0.09259259259259259 - nodes in this community are weakly interconnected._
 - **Should `Database Models & CSR` be split into smaller, more focused modules?**
-  _Cohesion score 0.059800664451827246 - nodes in this community are weakly interconnected._
-- **Should `Backup System` be split into smaller, more focused modules?**
-  _Cohesion score 0.12318840579710146 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08064516129032258 - nodes in this community are weakly interconnected._
