@@ -75,6 +75,7 @@ $(document).ready(function() {
             },
             {
                 data: 'san_domains',
+                className: 'text-nowrap',
                 render: function(d) { return d ? `<small>${d}</small>` : '<small class="text-muted">N/A</small>'; }
             },
             {
@@ -93,6 +94,7 @@ $(document).ready(function() {
             {
                 data: null,
                 orderable: false,
+                className: 'text-nowrap',
                 render: function(data, type, row) {
                     return `
                         <div class="btn-group btn-group-sm">

@@ -36,9 +36,9 @@ def api_list():
         if c.san_domains:
             try:
                 domains = json.loads(c.san_domains)
-                san = ', '.join(domains[:3])
-                if len(domains) > 3:
-                    san += f' (+{len(domains) - 3} more)'
+                san = domains[0] if domains else ''
+                if len(domains) > 1:
+                    san += f' (+{len(domains) - 1} more)'
             except (json.JSONDecodeError, TypeError):
                 san = c.san_domains
 
