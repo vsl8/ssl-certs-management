@@ -1,6 +1,6 @@
 {
   ".opencode/opencode.json": {
-    "mtime": 1784269254.0590024,
+    "mtime": 1782474362.6512718,
     "ast_hash": "abcc8b9dcd80bca5f9dde6d9f0c3ae79",
     "semantic_hash": "abcc8b9dcd80bca5f9dde6d9f0c3ae79"
   },
@@ -10,9 +10,9 @@
     "semantic_hash": "d12d57c380c6f01a0a3c3d480824d09f"
   },
   "app.py": {
-    "mtime": 1784280542.493584,
-    "ast_hash": "280ee38688ce6305502b6fba972cb7a0",
-    "semantic_hash": ""
+    "mtime": 1781456749.245019,
+    "ast_hash": "691adae5a202f42bae9e82f8467450a2",
+    "semantic_hash": "691adae5a202f42bae9e82f8467450a2"
   },
   "backup_utils.py": {
     "mtime": 1781456749.245019,
@@ -80,9 +80,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "routes/auth.py": {
-    "mtime": 1784280534.1435547,
-    "ast_hash": "55d13b259eec8cdba6e9d1fdef78e208",
-    "semantic_hash": ""
+    "mtime": 1782280687.207075,
+    "ast_hash": "8144b17f31f5927486cd8a27f71bd451",
+    "semantic_hash": "8144b17f31f5927486cd8a27f71bd451"
   },
   "routes/certificates.py": {
     "mtime": 1784178677.3112164,
@@ -165,9 +165,9 @@
     "semantic_hash": "289bf952d7714cb9db2a69cbaf86548a"
   },
   "templates/base.html": {
-    "mtime": 1784281797.196968,
-    "ast_hash": "d30536cc1b75c123e90a954625524851",
-    "semantic_hash": ""
+    "mtime": 1782280739.3415563,
+    "ast_hash": "b745eb59faf1fbaa61c00d97c92bef04",
+    "semantic_hash": "b745eb59faf1fbaa61c00d97c92bef04"
   },
   "templates/certificates/add.html": {
     "mtime": 1781456749.247137,
@@ -387,11 +387,6 @@
   "test_file.py": {
     "mtime": 1784124209.1827846,
     "ast_hash": "2e4bb113594cdd027999e9a069ce1f1b",
-    "semantic_hash": ""
-  },
-  ".opencode/package.json": {
-    "mtime": 1784269132.750052,
-    "ast_hash": "2bffcf9dc5701114d97f5dc5e7c50482",
     "semantic_hash": ""
   }
 }
