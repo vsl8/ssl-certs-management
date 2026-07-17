@@ -21,7 +21,7 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
     {% block extra_css %}{% endblock %}
 </head>
-<body{% if current_user.is_authenticated %} data-theme="{{ current_user.theme }}"{% endif %}>
+<body{% if current_user.is_authenticated %} data-theme="{{ current_user.theme }}"{% if session.get('session_locked') %} data-session-locked="true"{% endif %}{% endif %}>
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
@@ -238,6 +238,10 @@
         #sessionLockModal .modal-content {
             background: rgba(255, 255, 255, 0.95);
         }
+        /* Show blur overlay immediately when server-side lock is active (prevents flash on reload/back) */
+        body[data-session-locked="true"] #sessionLockOverlay {
+            display: block !important;
+        }
     </style>
 
     <!-- Session Lock Script -->
@@ -245,102 +249,107 @@
     (function() {
         // Session lock configuration from server settings
         const SESSION_LOCK_ENABLED = {{ 'true' if not settings or settings.get('session_lock_enabled', {}).value != 'false' else 'false' }};
-        const SESSION_LOCK_TIMEOUT = {{ settings.get('session_lock_timeout', {}).value if settings and settings.get('session_lock_timeout') else '5' }} * 60 * 1000; // Convert to milliseconds
-        
+        const SESSION_LOCK_TIMEOUT = {{ settings.get('session_lock_timeout', {}).value if settings and settings.get('session_lock_timeout') else '5' }} * 60 * 1000;
+
         if (!SESSION_LOCK_ENABLED) return;
-        
+
+        // Initialise from SERVER SESSION — this survives page reload and back-button navigation.
+        let isLocked = {{ 'true' if session.get('session_locked') else 'false' }};
         let lastActivity = Date.now();
-        let isLocked = false;
-        let checkInterval;
-        
-        const lockModal = document.getElementById('sessionLockModal');
-        const lockOverlay = document.getElementById('sessionLockOverlay');
-        const unlockForm = document.getElementById('unlockForm');
+
+        const lockModal      = document.getElementById('sessionLockModal');
+        const lockOverlay    = document.getElementById('sessionLockOverlay');
+        const unlockForm     = document.getElementById('unlockForm');
         const unlockPassword = document.getElementById('unlockPassword');
-        const unlockBtn = document.getElementById('unlockBtn');
-        const unlockError = document.getElementById('unlockError');
-        
+        const unlockBtn      = document.getElementById('unlockBtn');
+        const unlockError    = document.getElementById('unlockError');
+
         if (!lockModal) return;
-        
+
         const bsLockModal = new bootstrap.Modal(lockModal, {
             backdrop: 'static',
             keyboard: false
         });
-        
-        // Track user activity
-        const activityEvents = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
-        
-        function updateActivity() {
-            if (!isLocked) {
-                lastActivity = Date.now();
-            }
-        }
-        
-        activityEvents.forEach(event => {
-            document.addEventListener(event, updateActivity, { passive: true });
+
+        // ── Activity tracking ──────────────────────────────────────────────────
+        ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach(function(ev) {
+            document.addEventListener(ev, function() {
+                if (!isLocked) lastActivity = Date.now();
+            }, { passive: true });
         });
-        
-        // Check for inactivity
-        function checkInactivity() {
-            if (isLocked) return;
-            
-            const now = Date.now();
-            const timeSinceActivity = now - lastActivity;
-            
-            if (timeSinceActivity >= SESSION_LOCK_TIMEOUT) {
-                lockSession();
-            }
-        }
-        
-        // Lock the session
-        function lockSession() {
-            if (isLocked) return;
-            isLocked = true;
-            
+
+        // ── Show lock UI ───────────────────────────────────────────────────────
+        // Called both by the inactivity timer and on page load when the server
+        // says the session is locked (the critical fix for reload / back-button).
+        function showLockUI() {
+            document.body.setAttribute('data-session-locked', 'true');
             lockOverlay.classList.remove('d-none');
-            bsLockModal.show();
             unlockPassword.value = '';
             unlockPassword.classList.remove('is-invalid');
             unlockError.textContent = '';
-            
-            // Focus password field when modal is shown
+            bsLockModal.show();
             lockModal.addEventListener('shown.bs.modal', function() {
                 unlockPassword.focus();
             }, { once: true });
+
+            // Push a history entry so the browser Back button stays on this
+            // (locked) page instead of silently revealing the previous page.
+            history.pushState({ sessionLocked: true }, '', window.location.href);
         }
-        
-        // Unlock the session
+
+        // ── Lock session ───────────────────────────────────────────────────────
+        function lockSession() {
+            if (isLocked) return;
+            isLocked = true;
+
+            // Persist lock state server-side so reload and back-button are blocked.
+            fetch('{{ url_for("auth.lock_session") }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }).catch(function() { /* best-effort; UI is already locked */ });
+
+            showLockUI();
+        }
+
+        // ── Unlock session ─────────────────────────────────────────────────────
         function unlockSession() {
             isLocked = false;
             lastActivity = Date.now();
-            
+            document.body.removeAttribute('data-session-locked');
             bsLockModal.hide();
             lockOverlay.classList.add('d-none');
         }
-        
-        // Handle unlock form submission
+
+        // ── Back / forward navigation while locked ─────────────────────────────
+        // Re-push the current URL so the user cannot navigate away with the
+        // browser history controls while the lock screen is active.
+        window.addEventListener('popstate', function() {
+            if (isLocked) {
+                history.pushState({ sessionLocked: true }, '', window.location.href);
+            }
+        });
+
+        // ── Unlock form submission ─────────────────────────────────────────────
         unlockForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            const password = unlockPassword.value;
+
+            var password = unlockPassword.value;
             if (!password) {
                 unlockPassword.classList.add('is-invalid');
                 unlockError.textContent = 'Please enter your password.';
                 return;
             }
-            
+
             unlockBtn.disabled = true;
             unlockBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
-            
+
             fetch('{{ url_for("auth.verify_password") }}', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'password=' + encodeURIComponent(password)
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
                 if (data.success) {
                     unlockSession();
                     Swal.fire({
@@ -358,32 +367,45 @@
                     unlockPassword.select();
                 }
             })
-            .catch(error => {
-                console.error('Unlock error:', error);
+            .catch(function() {
                 unlockPassword.classList.add('is-invalid');
                 unlockError.textContent = 'An error occurred. Please try again.';
             })
-            .finally(() => {
+            .finally(function() {
                 unlockBtn.disabled = false;
                 unlockBtn.innerHTML = '<i class="bi bi-unlock me-2"></i>Unlock Session';
             });
         });
-        
-        // Clear error on input
+
         unlockPassword.addEventListener('input', function() {
             this.classList.remove('is-invalid');
             unlockError.textContent = '';
         });
-        
-        // Start inactivity check interval (check every 10 seconds)
-        checkInterval = setInterval(checkInactivity, 10000);
-        
-        // Also check on visibility change (when user returns to tab)
+
+        // ── Inactivity checker ─────────────────────────────────────────────────
+        setInterval(function() {
+            if (!isLocked && Date.now() - lastActivity >= SESSION_LOCK_TIMEOUT) {
+                lockSession();
+            }
+        }, 10000);
+
         document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible' && !isLocked) {
-                checkInactivity();
+            if (document.visibilityState === 'visible' && !isLocked &&
+                    Date.now() - lastActivity >= SESSION_LOCK_TIMEOUT) {
+                lockSession();
             }
         });
+
+        // ── Restore lock on page load if server says locked ────────────────────
+        // This is the critical fix: reload and back-button both trigger a fresh
+        // page load; the server session flag means isLocked is already true here.
+        if (isLocked) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', showLockUI);
+            } else {
+                showLockUI();
+            }
+        }
     })();
     </script>
 

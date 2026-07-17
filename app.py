@@ -60,6 +60,28 @@ def create_app():
     app.register_blueprint(conversion_bp)
     app.register_blueprint(csr_bp)
 
+    # Block AJAX/API requests when session is server-side locked
+    @app.before_request
+    def enforce_session_lock():
+        from flask import session as flask_session, request as flask_request, jsonify as flask_jsonify
+        from flask_login import current_user as _cu
+        skip = {'auth.login', 'auth.logout', 'auth.verify_password', 'auth.lock_session', 'static'}
+        if flask_request.endpoint in skip:
+            return
+        if not _cu.is_authenticated:
+            return
+        if flask_session.get('session_locked'):
+            is_ajax = (
+                flask_request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                or flask_request.is_json
+                or flask_request.accept_mimetypes.best_match(
+                    ['application/json', 'text/html']) == 'application/json'
+            )
+            if is_ajax:
+                return flask_jsonify(
+                    {'success': False, 'message': 'Session is locked.', 'locked': True}
+                ), 423
+
     # Make config available in templates
     @app.context_processor
     def inject_config():

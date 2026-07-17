@@ -1,7 +1,7 @@
 """Authentication routes."""
 
 from datetime import datetime, timezone
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_user, logout_user, login_required, current_user
 from models import db, User
 from logger import get_logger
@@ -123,13 +123,23 @@ def profile():
     return render_template('auth/profile.html')
 
 
+@auth_bp.route('/lock-session', methods=['POST'])
+@login_required
+def lock_session():
+    """Lock the current user session server-side."""
+    session['session_locked'] = True
+    log.info('Session locked for user: %s', current_user.username)
+    return jsonify({'success': True})
+
+
 @auth_bp.route('/verify-password', methods=['POST'])
 @login_required
 def verify_password():
     """Verify current user's password for session unlock."""
     password = request.form.get('password', '')
-    
+
     if current_user.check_password(password):
+        session.pop('session_locked', None)  # Clear server-side lock state
         log.info('Session unlocked for user: %s', current_user.username)
         return jsonify({'success': True, 'message': 'Session unlocked successfully!'})
     else:
