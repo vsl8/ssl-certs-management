@@ -35,9 +35,9 @@
     "semantic_hash": "19725142bd30d2886f1c128269d54d5e"
   },
   "docker-entrypoint.sh": {
-    "mtime": 1782465862.4597452,
-    "ast_hash": "e12a9512ffc2b71fbbc0fc2ed7044bf3",
-    "semantic_hash": "e12a9512ffc2b71fbbc0fc2ed7044bf3"
+    "mtime": 1791208194.3769002,
+    "ast_hash": "21bd21a76a6630e0ea7c627fb3acd656",
+    "semantic_hash": ""
   },
   "generate_certs.sh": {
     "mtime": 1782213564.4010568,
