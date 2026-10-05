@@ -16,7 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
@@ -54,4 +56,6 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Run with gunicorn for production
 # Using 1 worker to prevent duplicate schedulers (each worker spawns its own APScheduler)
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "4", "app:create_app()"]
+# Invoke the venv binary directly: `uv run` re-resolves the lockfile at startup and adds
+# memory/process overhead that gets OOM-killed (exit 137) on small hosts.
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "4", "app:create_app()"]

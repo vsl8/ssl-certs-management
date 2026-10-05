@@ -5,6 +5,11 @@ echo "=========================================="
 echo "SSL Certificate Manager - Starting"
 echo "=========================================="
 
+# Use the prebuilt virtualenv interpreter directly. `uv run` re-resolves the lockfile
+# on every invocation, which is slow and memory hungry inside the container.
+PYTHON_BIN="${VIRTUAL_ENV:-/app/.venv}/bin/python"
+[ -x "$PYTHON_BIN" ] || PYTHON_BIN="$(command -v python3 || command -v python)"
+
 # Run database migrations
 MIGRATION_DIR="migrations"
 
@@ -22,11 +27,22 @@ if [ -d "$MIGRATION_DIR" ]; then
             migration_name=$(basename "$migration")
             echo ""
             echo "→ Running migration: $migration_name"
-            
-            if uv run python "$migration"; then
+
+            set +e
+            "$PYTHON_BIN" "$migration"
+            status=$?
+            set -e
+
+            if [ $status -eq 0 ]; then
                 echo "  ✓ $migration_name completed successfully"
+            elif [ $status -ge 128 ]; then
+                # 137 = SIGKILL (usually the OOM killer), 143 = SIGTERM
+                echo "  ✗ $migration_name was killed by signal $((status - 128)) (exit $status)."
+                echo "    This usually means the container ran out of memory. Increase the"
+                echo "    memory limit for this container and retry." >&2
+                exit $status
             else
-                echo "  ⚠ $migration_name returned an error (may already be applied)"
+                echo "  ⚠ $migration_name returned an error (exit $status, may already be applied)"
             fi
         done
     else
